@@ -140,46 +140,115 @@
     const verse = params.get("verse") || "";
     const verseNum = sura && verse ? `${sura}:${verse}` : "Unknown";
 
-    document.getElementById("title").textContent = `Verse References for ${verseNum}`;
-    document.getElementById("subtitle").textContent = `Six reference links generated from the workbook macro patterns for verse ${verseNum}.`;
-
+    const referenceStorageKey = "quran-reference-settings";
     const queryText = encodeURIComponent(`quran tafsir ${verseNum}`);
-    const quranComRef = `${encodeURIComponent(sura)}:${encodeURIComponent(verse)}`;
-
-    const links = [
+    const referenceConfigs = [
       {
+        id: "chatgpt",
         name: "ChatGPT",
-        description: "Search this verse with a tafsir-focused prompt.",
-        url: `https://chatgpt.com/?q=${queryText}`
+        description: "AI-assisted tafsir and explanation search.",
+        buildUrl: () => `https://chatgpt.com/?q=${queryText}`
       },
       {
+        id: "perplexity",
         name: "Perplexity",
-        description: "Search this verse with tafsir context.",
-        url: `https://www.perplexity.ai/search?q=${queryText}`
+        description: "AI-powered search for verse-related references.",
+        buildUrl: () => `https://www.perplexity.ai/search?q=${queryText}`
       },
       {
-        name: "Tafheem",
-        description: "Tafheem-ul-Quran reference for this verse.",
-        url: `https://islamicstudies.info/tafheem.php?sura=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
+        id: "quranmorphology",
+        name: "Quran Morphology",
+        description: "Morphology overview for the selected ayah.",
+        buildUrl: () => `https://quranmorphology.com/ayah/${encodeURIComponent(sura)}:${encodeURIComponent(verse)}`
       },
       {
-        name: "Maarif",
-        description: "Maarif-ul-Quran reference for this verse.",
-        url: `https://islamicstudies.info/quran/maarif.php?sura=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
+        id: "corpus_word_by_word",
+        name: "Corpus Word by Word",
+        description: "Word-by-word breakdown from Corpus Quran.",
+        buildUrl: () => `https://corpus.quran.com/wordbyword.jsp?chapter=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
       },
       {
-        name: "Corpus",
-        description: "Corpus Quran treebank and linguistic details.",
-        url: `https://corpus.quran.com/treebank.jsp?chapter=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
+        id: "tafheem",
+        name: "Tafheem-ul-Quran",
+        description: "Islamic Studies tafsir page for the verse.",
+        buildUrl: () => `https://islamicstudies.info/tafheem-orig.php?sura=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
       },
       {
-        name: "Quran.com",
-        description: "Open the verse in Quran.com.",
-        url: `https://quran.com/${quranComRef}`
+        id: "corpus_treebank",
+        name: "Corpus Treebank",
+        description: "Syntactic treebank view from Corpus Quran.",
+        buildUrl: () => `https://corpus.quran.com/treebank.jsp?chapter=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
+      },
+      {
+        id: "islam_awakened",
+        name: "Islam Awakened",
+        description: "Parallel translations and resources for the verse.",
+        buildUrl: () => `https://www.islamawakened.org/quran/${encodeURIComponent(sura)}/${encodeURIComponent(verse)}`
+      },
+      {
+        id: "quranwbw",
+        name: "QuranWBW",
+        description: "Word-by-word reading page.",
+        buildUrl: () => `https://quranwbw.com/${encodeURIComponent(sura)}#${encodeURIComponent(verse)}`
+      },
+      {
+        id: "quranwbw_morphology",
+        name: "QuranWBW Morphology",
+        description: "Morphology page from QuranWBW.",
+        buildUrl: () => `https://quranwbw.com/morphology/${encodeURIComponent(sura)}:${encodeURIComponent(verse)}`
+      },
+      {
+        id: "surahquran_tafsir",
+        name: "Surah Quran Tafsir",
+        description: "English tafsir page for the selected ayah.",
+        buildUrl: () => `https://surahquran.com/tafsir-english-aya-${encodeURIComponent(verse)}-sora-${encodeURIComponent(sura)}.html`
       }
     ];
 
+    function loadSelectedReferenceIds() {
+      const defaultIds = referenceConfigs.map((config) => config.id);
+      const raw = window.localStorage.getItem(referenceStorageKey);
+      if (!raw) {
+        return defaultIds;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return defaultIds;
+        }
+        return parsed.filter((id) => defaultIds.includes(id));
+      } catch (error) {
+        return defaultIds;
+      }
+    }
+
+    const selectedReferenceIds = loadSelectedReferenceIds();
+    const links = referenceConfigs
+      .filter((config) => selectedReferenceIds.includes(config.id))
+      .map((config) => ({
+        name: config.name,
+        description: config.description,
+        url: config.buildUrl()
+      }));
+
+    document.getElementById("title").textContent = `Verse References for ${verseNum}`;
+    document.getElementById("subtitle").textContent = links.length
+      ? `${links.length} reference link${links.length === 1 ? "" : "s"} available for verse ${verseNum}.`
+      : `No reference links are currently selected for verse ${verseNum}.`;
+
     const grid = document.getElementById("linksGrid");
+
+    if (!links.length) {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.innerHTML = `
+        <h2>No Sources Selected</h2>
+        <p>Open Reference Settings in the tracker and select the sources you want to use for this verse.</p>
+        <a href="./quran-reference-settings.html">Open Settings</a>
+      `;
+      grid.appendChild(card);
+    }
 
     links.forEach((link) => {
       const card = document.createElement("article");
