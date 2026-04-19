@@ -236,6 +236,29 @@
     const resetColumnsBtn = document.getElementById('resetColumnsBtn');
     const saveBtn = document.getElementById('saveBtn');
 
+    function getDisplayLabel(column) {
+      const labelMap = {
+        'S.no': 'Record No.',
+        'Surah Name': 'Surah',
+        SURA: 'Surah No.',
+        VERSE: 'Verse No.',
+        WORDS: 'Word Count',
+        LETTERS: 'Letter Count',
+        VerseNum: 'Verse Reference',
+        Translation: 'Translation',
+        'Quran Arabic': 'Arabic Text',
+        Learnt: 'Learned',
+        Memorise: 'Memorized',
+        'Date Learnt': 'Date Learned',
+        'Date Memorised': 'Date Memorized',
+        Juz: 'Juz',
+        Transliteration: 'Transliteration',
+        'Saheeh Translation': 'Saheeh International Translation',
+        Wordn: 'Word Number'
+      };
+      return labelMap[column] || column;
+    }
+
     function getDefaultReferenceIds() {
       return referenceConfigs.map((config) => config.id);
     }
@@ -335,7 +358,7 @@
         label.innerHTML = `
           <input type="checkbox" value="${column}" ${selectedColumns.has(column) ? 'checked' : ''} />
           <div>
-            <strong>${column}</strong>
+            <strong>${getDisplayLabel(column)}</strong>
             <span>Display this column in the tracker table.</span>
           </div>
         `;

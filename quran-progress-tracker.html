@@ -427,6 +427,9 @@
       .mobile-table-hint {
         display: block;
       }
+      .link-cell {
+        min-width: 0;
+      }
       th, td {
         max-width: 150px;
         padding: 6px 7px;
@@ -447,6 +450,13 @@
       .memorise-select {
         min-width: 0;
         width: 100%;
+      }
+      .reference-link {
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        text-align: center;
+        line-height: 1.25;
       }
       .pager {
         gap: 8px;
@@ -695,6 +705,29 @@
       return new Date(value).toISOString().slice(0, 10);
     }
 
+    function getDisplayLabel(column) {
+      const labelMap = {
+        'S.no': 'Record No.',
+        'Surah Name': 'Surah',
+        SURA: 'Surah No.',
+        VERSE: 'Verse No.',
+        WORDS: 'Word Count',
+        LETTERS: 'Letter Count',
+        VerseNum: 'Verse Reference',
+        Translation: 'Translation',
+        'Quran Arabic': 'Arabic Text',
+        Learnt: 'Learned',
+        Memorise: 'Memorized',
+        'Date Learnt': 'Date Learned',
+        'Date Memorised': 'Date Memorized',
+        Juz: 'Juz',
+        Transliteration: 'Transliteration',
+        'Saheeh Translation': 'Saheeh International Translation',
+        Wordn: 'Word Number'
+      };
+      return labelMap[column] || column;
+    }
+
     function isNumericFilterColumn(column) {
       return ['SURA', 'VERSE', 'WORDS', 'LETTERS', 'Juz', 'S.no', 'Wordn'].includes(column);
     }
@@ -844,7 +877,7 @@
     function buildHeader() {
       tableHead.innerHTML = '';
       const linksHeader = document.createElement('th');
-      linksHeader.textContent = 'Reference Link';
+      linksHeader.textContent = 'References';
       tableHead.appendChild(linksHeader);
 
       orderedColumns.forEach((column) => {
@@ -854,7 +887,7 @@
           th.classList.add('is-compact-column');
           th.classList.add(getCompactColumnClass(column));
         }
-        th.textContent = column.toUpperCase();
+        th.textContent = getDisplayLabel(column);
         tableHead.appendChild(th);
       });
     }
@@ -992,7 +1025,7 @@
         } else {
           input.type = /date/i.test(column) ? 'date' : 'text';
           if (input.type === 'text') {
-            input.placeholder = `Filter ${column}`;
+            input.placeholder = `Filter ${getDisplayLabel(column)}`;
           }
         }
 
