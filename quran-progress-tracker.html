@@ -661,6 +661,10 @@
       return new Date(value).toISOString().slice(0, 10);
     }
 
+    function isNumericFilterColumn(column) {
+      return ['SURA', 'VERSE', 'WORDS', 'LETTERS', 'Juz', 'S.no', 'Wordn'].includes(column);
+    }
+
     function getTodayLearntTimestamp() {
       const now = new Date();
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0).getTime();
@@ -1027,7 +1031,9 @@
                 : String(row[column] || '').trim().toLowerCase() !== 'yes')
             : /date/i.test(column)
               ? formatDateValueForFilter(row[column]) === value
-              : formatCellValue(column, row[column]).toLowerCase().includes(value)
+              : isNumericFilterColumn(column)
+                ? formatCellValue(column, row[column]).toLowerCase() === value
+                : formatCellValue(column, row[column]).toLowerCase().includes(value)
         );
       });
 
