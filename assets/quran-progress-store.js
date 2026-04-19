@@ -1,0 +1,262 @@
+(function () {
+  const DB_NAME = 'quran-progress-tracker-db-v2';
+  const STORE_NAME = 'app-state';
+  const DATA_KEY = 'rows';
+  const META_KEY = 'seed-version';
+  const DEFAULT_PENDING_KEY = 'quran-progress-pending-changes';
+  const seedRows = Array.isArray(window.QURAN_PROGRESS_SEED) ? window.QURAN_PROGRESS_SEED : [];
+  const seedVersion = window.QURAN_PROGRESS_SEED_VERSION || `seed-${seedRows.length}`;
+
+  let dbPromise;
+
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function repairUtf8Mojibake(value) {
+    if (typeof value !== 'string' || !/[\u00D8\u00D9]/.test(value)) {
+      return value;
+    }
+
+    try {
+      const bytes = Uint8Array.from(Array.from(value, (char) => char.charCodeAt(0) & 0xFF));
+      return new TextDecoder('utf-8').decode(bytes);
+    } catch (error) {
+      return value;
+    }
+  }
+
+  function hasArabicScript(value) {
+    return typeof value === 'string' && /[\u0600-\u06FF]/.test(value);
+  }
+
+  function syncArabicFromSeed(rows) {
+    if (!Array.isArray(rows) || !Array.isArray(seedRows) || rows.length !== seedRows.length) {
+      return { rows, changed: false };
+    }
+
+    let changed = false;
+    const syncedRows = rows.map((row, index) => {
+      if (!row || typeof row !== 'object') {
+        return row;
+      }
+
+      const nextRow = { ...row };
+      const currentArabic = nextRow['Quran Arabic'];
+      const seedArabic = seedRows[index] && seedRows[index]['Quran Arabic'];
+
+      if (typeof currentArabic === 'string' && typeof seedArabic === 'string') {
+        const repairedArabic = repairUtf8Mojibake(currentArabic);
+        const shouldReplaceFromSeed =
+          !hasArabicScript(repairedArabic) ||
+          /[\u00D8\u00D9]/.test(currentArabic);
+
+        if (shouldReplaceFromSeed && hasArabicScript(seedArabic) && currentArabic !== seedArabic) {
+          nextRow['Quran Arabic'] = seedArabic;
+          changed = true;
+        } else if (repairedArabic !== currentArabic) {
+          nextRow['Quran Arabic'] = repairedArabic;
+          changed = true;
+        }
+      }
+
+      return nextRow;
+    });
+
+    return { rows: syncedRows, changed };
+  }
+
+  function normalizeRows(rows) {
+    if (!Array.isArray(rows)) {
+      return [];
+    }
+
+    let changed = false;
+    const normalizedRows = rows.map((row) => {
+      if (!row || typeof row !== 'object') {
+        return row;
+      }
+
+      const nextRow = { ...row };
+
+      if (typeof nextRow['Quran Arabic'] === 'string') {
+        const repairedArabic = repairUtf8Mojibake(nextRow['Quran Arabic']);
+        if (repairedArabic !== nextRow['Quran Arabic']) {
+          nextRow['Quran Arabic'] = repairedArabic;
+          changed = true;
+        }
+      }
+
+      return nextRow;
+    });
+
+    const syncedRows = syncArabicFromSeed(normalizedRows);
+    return { rows: syncedRows.rows, changed: changed || syncedRows.changed };
+  }
+
+  function openDb() {
+    if (dbPromise) {
+      return dbPromise;
+    }
+
+    dbPromise = new Promise((resolve, reject) => {
+      const request = window.indexedDB.open(DB_NAME, 1);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      };
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+
+    return dbPromise;
+  }
+
+  async function readValue(key) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(key);
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function writeValue(key, value) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      store.put(value, key);
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
+
+  async function ensureInitialized() {
+    const [storedRows, storedSeedVersion] = await Promise.all([
+      readValue(DATA_KEY),
+      readValue(META_KEY)
+    ]);
+
+    if (!Array.isArray(storedRows) || !storedRows.length) {
+      const normalizedSeed = normalizeRows(clone(seedRows));
+      const initialRows = normalizedSeed.rows;
+      await Promise.all([
+        writeValue(DATA_KEY, initialRows),
+        writeValue(META_KEY, seedVersion)
+      ]);
+      return initialRows;
+    }
+
+    const normalizedStored = normalizeRows(clone(storedRows));
+    if (normalizedStored.changed) {
+      await writeValue(DATA_KEY, normalizedStored.rows);
+    }
+
+    if (storedSeedVersion !== seedVersion) {
+      await writeValue(META_KEY, seedVersion);
+    }
+
+    return normalizedStored.rows;
+  }
+
+  function applyPendingChanges(rows, pendingKey = DEFAULT_PENDING_KEY) {
+    const raw = window.localStorage.getItem(pendingKey);
+    if (!raw) {
+      return rows;
+    }
+
+    let pendingChanges;
+    try {
+      pendingChanges = JSON.parse(raw);
+    } catch (error) {
+      return rows;
+    }
+
+    if (!pendingChanges || typeof pendingChanges !== 'object') {
+      return rows;
+    }
+
+    const rowIdField = rows.some((row) => row && row['S.no'] !== undefined) ? 'S.no' : null;
+
+    rows.forEach((row, index) => {
+      const rowKey = rowIdField && row && row[rowIdField] !== undefined && row[rowIdField] !== null
+        ? String(row[rowIdField])
+        : String(index);
+      const changeSet = pendingChanges[rowKey];
+
+      if (!changeSet || typeof changeSet !== 'object') {
+        return;
+      }
+
+      Object.entries(changeSet).forEach(([field, value]) => {
+        row[field] = value;
+      });
+    });
+
+    return rows;
+  }
+
+  async function getSavedRows() {
+    return clone(await ensureInitialized());
+  }
+
+  async function getWorkingRows(options = {}) {
+    const pendingKey = options.pendingKey || DEFAULT_PENDING_KEY;
+    return applyPendingChanges(await getSavedRows(), pendingKey);
+  }
+
+  async function saveRows(rows) {
+    const clonedRows = normalizeRows(clone(rows)).rows;
+    await Promise.all([
+      writeValue(DATA_KEY, clonedRows),
+      writeValue(META_KEY, seedVersion)
+    ]);
+    return clonedRows;
+  }
+
+  async function resetSavedRowsToSeed() {
+    const clonedRows = normalizeRows(clone(seedRows)).rows;
+    await Promise.all([
+      writeValue(DATA_KEY, clonedRows),
+      writeValue(META_KEY, seedVersion)
+    ]);
+    window.localStorage.removeItem(DEFAULT_PENDING_KEY);
+    return clonedRows;
+  }
+
+  function clearPendingChanges(pendingKey = DEFAULT_PENDING_KEY) {
+    window.localStorage.removeItem(pendingKey);
+  }
+
+  function getColumnList(hiddenColumns) {
+    const hiddenSet = new Set(hiddenColumns || []);
+    return [...seedRows.reduce((set, row) => {
+      Object.keys(row || {}).forEach((key) => {
+        if (!hiddenSet.has(key)) {
+          set.add(key);
+        }
+      });
+      return set;
+    }, new Set())];
+  }
+
+  window.QuranProgressStore = {
+    applyPendingChanges,
+    clearPendingChanges,
+    getColumnList,
+    getSavedRows,
+    getWorkingRows,
+    resetSavedRowsToSeed,
+    saveRows,
+    seedVersion
+  };
+})();
