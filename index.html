@@ -226,14 +226,24 @@
       white-space: nowrap;
     }
 
+    thead .is-compact-column {
+      white-space: normal;
+      line-height: 1.2;
+    }
+
     .compact-sura,
     .compact-juz,
-    .compact-verse,
+    .compact-verse {
+      width: 10.5ch;
+      min-width: 10.5ch;
+      max-width: 10.5ch;
+    }
+
     .compact-words,
     .compact-letters {
-      width: 8.2ch;
-      min-width: 8.2ch;
-      max-width: 8.2ch;
+      width: 11.5ch;
+      min-width: 11.5ch;
+      max-width: 11.5ch;
     }
 
     .is-compact-column .header-filter {
@@ -241,6 +251,23 @@
       width: 100%;
       padding: 6px 4px;
       text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      thead .compact-sura,
+      thead .compact-juz,
+      thead .compact-verse {
+        width: 9.5ch;
+        min-width: 9.5ch;
+        max-width: 9.5ch;
+      }
+
+      thead .compact-words,
+      thead .compact-letters {
+        width: 10.5ch;
+        min-width: 10.5ch;
+        max-width: 10.5ch;
+      }
     }
 
     th, td {
