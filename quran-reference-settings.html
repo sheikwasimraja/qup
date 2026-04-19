@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quran Tracker Settings</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --panel: #fffdf8;
+      --panel-2: #f8f3e8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d6c7a8;
+      --accent: #0f766e;
+      --accent-2: #134e4a;
+      --shadow: 0 18px 40px rgba(50, 36, 12, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 24%),
+        linear-gradient(180deg, #faf7f0 0%, var(--bg) 100%);
+      padding: 16px;
+    }
+
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 18px;
+      margin-bottom: 14px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(15,118,110,0.12), rgba(250,247,240,0.92));
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .section + .section {
+      margin-top: 22px;
+      padding-top: 22px;
+      border-top: 1px solid #eadfc6;
+    }
+
+    .section h2 {
+      margin: 0 0 6px;
+      font-size: 1.1rem;
+    }
+
+    .section p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .bismillah-arabic {
+      margin: 0 0 6px;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      line-height: 1.35;
+      color: var(--accent-2);
+    }
+
+    .bismillah-english {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.5rem, 3vw, 2.1rem);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    button,
+    a.button-link {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font: inherit;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.secondary,
+    a.button-link.secondary {
+      background: #fff;
+      color: var(--accent-2);
+    }
+
+    .status {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+
+    .option-card input {
+      margin-top: 3px;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .option-card strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.96rem;
+    }
+
+    .option-card span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .hero, .panel { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <p class="bismillah-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+      <p class="bismillah-english">In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+      <h1>Quran Tracker Settings</h1>
+      <p class="subtitle">Choose your preferred reference sources and select which columns should appear in the tracker.</p>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <button id="saveBtn" type="button">Save Settings</button>
+        <a class="button-link secondary" href="./quran-progress-tracker.html">Back to Tracker</a>
+      </div>
+
+      <p class="status" id="statusText">Your settings are saved in this browser.</p>
+
+      <div class="section">
+        <h2>Reference Sources</h2>
+        <p>Select which sources should open when you use the tracker's reference button.</p>
+        <div class="toolbar">
+          <button id="selectAllReferencesBtn" class="secondary" type="button">Select All Sources</button>
+          <button id="clearAllReferencesBtn" class="secondary" type="button">Clear All Sources</button>
+        </div>
+        <div class="option-list" id="referenceOptionList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Visible Columns</h2>
+        <p>Select which columns should be displayed in the tracker table.</p>
+        <div class="toolbar">
+          <button id="selectAllColumnsBtn" class="secondary" type="button">Select All Columns</button>
+          <button id="resetColumnsBtn" class="secondary" type="button">Reset Default Columns</button>
+        </div>
+        <div class="option-list" id="columnOptionList"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="./assets/quran-progress-seed.js"></script>
+  <script src="./assets/quran-progress-store.js"></script>
+  <script>
+    const referenceStorageKey = 'quran-reference-settings';
+    const columnStorageKey = 'quran-visible-columns';
+    const referenceConfigs = [
+      { id: 'chatgpt', label: 'ChatGPT', description: 'AI-assisted tafsir and explanation search.' },
+      { id: 'perplexity', label: 'Perplexity', description: 'AI-powered search for verse-related references.' },
+      { id: 'quranmorphology', label: 'Quran Morphology', description: 'Morphology overview for the selected ayah.' },
+      { id: 'corpus_word_by_word', label: 'Corpus Word by Word', description: 'Word-by-word breakdown from Corpus Quran.' },
+      { id: 'tafheem', label: 'Tafheem-ul-Quran', description: 'Islamic Studies tafsir page for the verse.' },
+      { id: 'corpus_treebank', label: 'Corpus Treebank', description: 'Syntactic treebank view from Corpus Quran.' },
+      { id: 'islam_awakened', label: 'Islam Awakened', description: 'Parallel translations and resources for the verse.' },
+      { id: 'quranwbw', label: 'QuranWBW', description: 'Word-by-word reading page.' },
+      { id: 'quranwbw_morphology', label: 'QuranWBW Morphology', description: 'Morphology page from QuranWBW.' },
+      { id: 'surahquran_tafsir', label: 'Surah Quran Tafsir', description: 'English tafsir page for the selected ayah.' }
+    ];
+    const hiddenColumns = new Set(['S.no', 'Surah Start Link', 'qurano', 'Learnt_Copy', 'Column1', 'Column2', 'Wordn']);
+
+    const referenceOptionList = document.getElementById('referenceOptionList');
+    const columnOptionList = document.getElementById('columnOptionList');
+    const statusText = document.getElementById('statusText');
+    const selectAllReferencesBtn = document.getElementById('selectAllReferencesBtn');
+    const clearAllReferencesBtn = document.getElementById('clearAllReferencesBtn');
+    const selectAllColumnsBtn = document.getElementById('selectAllColumnsBtn');
+    const resetColumnsBtn = document.getElementById('resetColumnsBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    function getDefaultReferenceIds() {
+      return referenceConfigs.map((config) => config.id);
+    }
+
+    function loadSelectedReferenceIds() {
+      const raw = localStorage.getItem(referenceStorageKey);
+      if (!raw) {
+        return getDefaultReferenceIds();
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return getDefaultReferenceIds();
+        }
+        const valid = parsed.filter((id) => getDefaultReferenceIds().includes(id));
+        return valid.length ? valid : [];
+      } catch (error) {
+        return getDefaultReferenceIds();
+      }
+    }
+
+    function renderReferenceOptions() {
+      const selectedIds = new Set(loadSelectedReferenceIds());
+      referenceOptionList.innerHTML = '';
+
+      referenceConfigs.forEach((config) => {
+        const label = document.createElement('label');
+        label.className = 'option-card';
+        label.innerHTML = `
+          <input type="checkbox" value="${config.id}" ${selectedIds.has(config.id) ? 'checked' : ''} />
+          <div>
+            <strong>${config.label}</strong>
+            <span>${config.description}</span>
+          </div>
+        `;
+        referenceOptionList.appendChild(label);
+      });
+    }
+
+    function moveColumnsAfter(columns, targetColumn, columnsToMove) {
+      const ordered = columns.filter((column) => !columnsToMove.includes(column));
+      const targetIndex = ordered.indexOf(targetColumn);
+      if (targetIndex === -1) {
+        ordered.push(...columnsToMove.filter((column) => columns.includes(column)));
+        return ordered;
+      }
+      ordered.splice(
+        targetIndex + 1,
+        0,
+        ...columnsToMove.filter((column) => columns.includes(column))
+      );
+      return ordered;
+    }
+
+    function getCheckedReferenceIds() {
+      return Array.from(referenceOptionList.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
+    }
+
+    function setAllReferenceOptions(checked) {
+      referenceOptionList.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.checked = checked;
+      });
+    }
+
+    async function getDefaultOrderedColumns() {
+      const columns = QuranProgressStore.getColumnList(hiddenColumns);
+      return moveColumnsAfter(columns, 'Learnt', ['Quran Arabic', 'Translation']);
+    }
+
+    async function loadSelectedColumns(defaultColumns) {
+      const raw = localStorage.getItem(columnStorageKey);
+      if (!raw) {
+        return defaultColumns;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return defaultColumns;
+        }
+        const validSet = new Set(parsed.filter((column) => defaultColumns.includes(column)));
+        return defaultColumns.filter((column) => validSet.has(column));
+      } catch (error) {
+        return defaultColumns;
+      }
+    }
+
+    async function renderColumnOptions() {
+      const defaultColumns = await getDefaultOrderedColumns();
+      const selectedColumns = new Set(await loadSelectedColumns(defaultColumns));
+      columnOptionList.innerHTML = '';
+
+      defaultColumns.forEach((column) => {
+        const label = document.createElement('label');
+        label.className = 'option-card';
+        label.innerHTML = `
+          <input type="checkbox" value="${column}" ${selectedColumns.has(column) ? 'checked' : ''} />
+          <div>
+            <strong>${column}</strong>
+            <span>Display this column in the tracker table.</span>
+          </div>
+        `;
+        columnOptionList.appendChild(label);
+      });
+    }
+
+    function getCheckedColumns() {
+      return Array.from(columnOptionList.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
+    }
+
+    function setAllColumnOptions(checked) {
+      columnOptionList.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.checked = checked;
+      });
+    }
+
+    selectAllReferencesBtn.addEventListener('click', () => {
+      setAllReferenceOptions(true);
+      statusText.textContent = 'All reference sources are selected.';
+    });
+
+    clearAllReferencesBtn.addEventListener('click', () => {
+      setAllReferenceOptions(false);
+      statusText.textContent = 'All reference sources are cleared. Save to keep this selection.';
+    });
+
+    selectAllColumnsBtn.addEventListener('click', () => {
+      setAllColumnOptions(true);
+      statusText.textContent = 'All tracker columns are selected.';
+    });
+
+    resetColumnsBtn.addEventListener('click', async () => {
+      const defaultColumns = await getDefaultOrderedColumns();
+      const selectedSet = new Set(defaultColumns);
+      columnOptionList.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.checked = selectedSet.has(input.value);
+      });
+      statusText.textContent = 'Tracker columns have been reset to the default layout.';
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      const checkedReferenceIds = getCheckedReferenceIds();
+      const defaultColumns = await getDefaultOrderedColumns();
+      const checkedColumns = getCheckedColumns().filter((column) => defaultColumns.includes(column));
+      localStorage.setItem(referenceStorageKey, JSON.stringify(checkedReferenceIds));
+      localStorage.setItem(columnStorageKey, JSON.stringify(checkedColumns));
+      statusText.textContent = `Saved ${checkedReferenceIds.length} reference source${checkedReferenceIds.length === 1 ? '' : 's'} and ${checkedColumns.length} visible column${checkedColumns.length === 1 ? '' : 's'}. Refresh the tracker if it is already open.`;
+    });
+
+    renderReferenceOptions();
+    renderColumnOptions().catch(() => {
+      statusText.textContent = 'Unable to load the available tracker columns. Please refresh and try again.';
+    });
+  </script>
+</body>
+</html>

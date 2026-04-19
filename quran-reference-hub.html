@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quran Reference Hub</title>
+  <style>
+    :root {
+      --bg: #f6f1e6;
+      --panel: #fffdf8;
+      --border: #dccca7;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #0f766e;
+      --shadow: 0 22px 55px rgba(68, 49, 13, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.1), transparent 24%),
+        linear-gradient(180deg, #fbf7ef 0%, var(--bg) 100%);
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 24px;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      line-height: 1.05;
+    }
+
+    .subtext {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .bismillah-arabic {
+      margin: 0 0 10px;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      line-height: 1.5;
+      color: #134e4a;
+    }
+
+    .bismillah-english {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 1rem;
+      font-style: italic;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      min-height: 2.7em;
+    }
+
+    .card a,
+    .back-link {
+      display: inline-block;
+      text-decoration: none;
+      color: white;
+      background: var(--accent);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .back {
+      margin-top: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <p class="bismillah-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+      <p class="bismillah-english">In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+      <h1 id="title">Quran Reference Hub</h1>
+      <p class="subtext" id="subtitle">Reference links for the selected verse.</p>
+    </section>
+
+    <section class="panel">
+      <div class="grid" id="linksGrid"></div>
+      <div class="back">
+        <a class="back-link" href="./quran-progress-tracker.html">Back to tracker</a>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sura = params.get("sura") || "";
+    const verse = params.get("verse") || "";
+    const verseNum = sura && verse ? `${sura}:${verse}` : "Unknown";
+
+    document.getElementById("title").textContent = `Verse References for ${verseNum}`;
+    document.getElementById("subtitle").textContent = `Six reference links generated from the workbook macro patterns for verse ${verseNum}.`;
+
+    const queryText = encodeURIComponent(`quran tafsir ${verseNum}`);
+    const quranComRef = `${encodeURIComponent(sura)}:${encodeURIComponent(verse)}`;
+
+    const links = [
+      {
+        name: "ChatGPT",
+        description: "Search this verse with a tafsir-focused prompt.",
+        url: `https://chatgpt.com/?q=${queryText}`
+      },
+      {
+        name: "Perplexity",
+        description: "Search this verse with tafsir context.",
+        url: `https://www.perplexity.ai/search?q=${queryText}`
+      },
+      {
+        name: "Tafheem",
+        description: "Tafheem-ul-Quran reference for this verse.",
+        url: `https://islamicstudies.info/tafheem.php?sura=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
+      },
+      {
+        name: "Maarif",
+        description: "Maarif-ul-Quran reference for this verse.",
+        url: `https://islamicstudies.info/quran/maarif.php?sura=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
+      },
+      {
+        name: "Corpus",
+        description: "Corpus Quran treebank and linguistic details.",
+        url: `https://corpus.quran.com/treebank.jsp?chapter=${encodeURIComponent(sura)}&verse=${encodeURIComponent(verse)}`
+      },
+      {
+        name: "Quran.com",
+        description: "Open the verse in Quran.com.",
+        url: `https://quran.com/${quranComRef}`
+      }
+    ];
+
+    const grid = document.getElementById("linksGrid");
+
+    links.forEach((link) => {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.innerHTML = `
+        <h2>${link.name}</h2>
+        <p>${link.description}</p>
+        <a href="${link.url}" target="_blank" rel="noopener noreferrer">Open</a>
+      `;
+      grid.appendChild(card);
+    });
+  </script>
+</body>
+</html>

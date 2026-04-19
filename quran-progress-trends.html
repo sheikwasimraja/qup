@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quran Progress Trends</title>
+  <style>
+    :root {
+      --bg: #f6f1e6;
+      --panel: #fffdf8;
+      --border: #dccca7;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #0f766e;
+      --accent-soft: rgba(15, 118, 110, 0.16);
+      --bar: #c2410c;
+      --bar-soft: rgba(194, 65, 12, 0.16);
+      --grid: #e8deca;
+      --shadow: 0 24px 60px rgba(68, 49, 13, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 24%),
+        linear-gradient(180deg, #fbf7ef 0%, var(--bg) 100%);
+      padding: 16px;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 18px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+      margin-inline: auto;
+      font-size: 0.9rem;
+    }
+
+    .bismillah-arabic {
+      margin: 0 0 6px;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      line-height: 1.35;
+      color: #134e4a;
+    }
+
+    .bismillah-english {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .panel {
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 1.1rem;
+    }
+
+    .panel p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .panel-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .panel-toolbar select {
+      width: auto;
+      min-width: 150px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font: inherit;
+      color: var(--text);
+    }
+
+    .chart-box {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff 0%, #fffcf6 100%);
+      padding: 8px;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .legend {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend i {
+      width: 12px;
+      height: 12px;
+      display: inline-block;
+      border-radius: 999px;
+    }
+
+    .links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      justify-content: center;
+    }
+
+    .links a {
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: #fff;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .axis-label {
+      font-size: 12px;
+      fill: var(--muted);
+    }
+
+    .grid-line {
+      stroke: var(--grid);
+      stroke-width: 1;
+    }
+
+    .bar {
+      fill: var(--bar);
+    }
+
+    .bar-soft {
+      fill: var(--bar-soft);
+    }
+
+    .line {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+    }
+
+    .area {
+      fill: var(--accent-soft);
+    }
+
+    .point {
+      fill: var(--accent);
+    }
+
+    .point-hit {
+      fill: transparent;
+      cursor: pointer;
+    }
+
+    .tooltip {
+      position: fixed;
+      z-index: 20;
+      background: rgba(31, 41, 55, 0.96);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      line-height: 1.35;
+      pointer-events: none;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+      display: none;
+      max-width: 220px;
+    }
+
+    @media (max-width: 900px) {
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .hero, .panel { padding: 12px; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <p class="bismillah-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+      <p class="bismillah-english">In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+      <h1>Quran Progress Trends</h1>
+      <p class="subtitle">Daily and monthly progress based on your browser-saved learning history. Blank dates are excluded from these charts.</p>
+      <div class="stats">
+        <div class="stat">
+          <strong id="totalLearnt">0</strong>
+          <span>Dated learnt rows</span>
+        </div>
+        <div class="stat">
+          <strong id="uniqueDays">0</strong>
+          <span>Active days</span>
+        </div>
+        <div class="stat">
+          <strong id="bestDay">0</strong>
+          <span>Best daily count</span>
+        </div>
+        <div class="stat">
+          <strong id="bestMonth">0</strong>
+          <span>Best monthly count</span>
+        </div>
+      </div>
+      <div class="links">
+        <a href="./quran-progress-tracker.html">Tracker</a>
+        <a href="./quran-progress-summary.html">Progress Summary</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Daily Progress</h2>
+      <p>Line chart showing how many rows were learnt on each recorded day.</p>
+      <div class="panel-toolbar">
+        <span class="subtitle">Hover a point to see the exact date and count.</span>
+        <select id="dailyWindowSelect">
+          <option value="6m">Last 6 months</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+      <div class="chart-box">
+        <svg id="dailyChart" viewBox="0 0 1160 280" aria-label="Daily progress chart"></svg>
+      </div>
+      <div class="legend">
+        <span><i style="background:#0f766e"></i>Daily learnt count</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Daily Word Count Progress</h2>
+      <p>Line chart showing how many words were completed on each recorded day.</p>
+      <div class="chart-box">
+        <svg id="dailyWordsChart" viewBox="0 0 1160 280" aria-label="Daily word count progress chart"></svg>
+      </div>
+      <div class="legend">
+        <span><i style="background:#2563eb"></i>Daily completed words</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Monthly Progress</h2>
+      <p>Bar chart showing the total learnt rows per month.</p>
+      <div class="chart-box">
+        <svg id="monthlyChart" viewBox="0 0 1160 320" aria-label="Monthly progress chart"></svg>
+      </div>
+      <div class="legend">
+        <span><i style="background:#c2410c"></i>Monthly learnt count</span>
+      </div>
+    </section>
+  </div>
+
+  <div id="chartTooltip" class="tooltip"></div>
+
+  <script src="./assets/quran-progress-seed.js"></script>
+  <script src="./assets/quran-progress-store.js"></script>
+  <script>
+    let dailyData = [];
+    let dailyWordData = [];
+    let monthlyData = [];
+    let currentDailyWindow = '6m';
+
+    function addSvgElement(svg, tag, attrs) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+      svg.appendChild(el);
+      return el;
+    }
+
+    function getDailyDataForWindow() {
+      if (currentDailyWindow !== '6m' || !dailyData.length) {
+        return dailyData;
+      }
+
+      const lastDate = new Date(dailyData[dailyData.length - 1].date + 'T00:00:00');
+      const cutoff = new Date(lastDate);
+      cutoff.setMonth(cutoff.getMonth() - 6);
+      return dailyData.filter((item) => new Date(item.date + 'T00:00:00') >= cutoff);
+    }
+
+    function getDailyWordDataForWindow() {
+      if (currentDailyWindow !== '6m' || !dailyWordData.length) {
+        return dailyWordData;
+      }
+
+      const lastDate = new Date(dailyWordData[dailyWordData.length - 1].date + 'T00:00:00');
+      const cutoff = new Date(lastDate);
+      cutoff.setMonth(cutoff.getMonth() - 6);
+      return dailyWordData.filter((item) => new Date(item.date + 'T00:00:00') >= cutoff);
+    }
+
+    function showTooltip(event, item) {
+      const tooltip = document.getElementById('chartTooltip');
+      tooltip.innerHTML = `<strong>${item.date}</strong><br>${item.count.toLocaleString()} ${item.metricLabel || 'learnt'}`;
+      tooltip.style.display = 'block';
+      tooltip.style.left = `${event.clientX + 14}px`;
+      tooltip.style.top = `${event.clientY + 14}px`;
+    }
+
+    function hideTooltip() {
+      const tooltip = document.getElementById('chartTooltip');
+      tooltip.style.display = 'none';
+    }
+
+    function renderDailyChart() {
+      const svg = document.getElementById("dailyChart");
+      svg.innerHTML = '';
+      const chartData = getDailyDataForWindow();
+      const isAllTimeView = currentDailyWindow === 'all';
+      const denseView = chartData.length > 180;
+      const width = 1160;
+      const height = 280;
+      const left = 56;
+      const right = 20;
+      const top = 18;
+      const bottom = 36;
+      const plotWidth = width - left - right;
+      const plotHeight = height - top - bottom;
+      const maxValue = chartData.length ? Math.max(...chartData.map((item) => item.count)) : 1;
+      const steps = 5;
+
+      for (let i = 0; i <= steps; i += 1) {
+        const y = top + (plotHeight / steps) * i;
+        const value = Math.round(maxValue - (maxValue / steps) * i);
+        addSvgElement(svg, "line", { x1: left, y1: y, x2: width - right, y2: y, class: "grid-line" });
+        const label = addSvgElement(svg, "text", { x: left - 10, y: y + 4, "text-anchor": "end", class: "axis-label" });
+        label.textContent = value;
+      }
+
+      const xStep = plotWidth / Math.max(chartData.length - 1, 1);
+      const points = chartData.map((item, index) => {
+        const x = left + index * xStep;
+        const y = top + plotHeight - (item.count / maxValue) * plotHeight;
+        return { x, y, item };
+      });
+
+      if (!points.length) {
+        return;
+      }
+
+      const linePoints = points.map((point) => `${point.x},${point.y}`).join(" ");
+      const areaPoints = [`${left},${top + plotHeight}`, ...points.map((point) => `${point.x},${point.y}`), `${points[points.length - 1].x},${top + plotHeight}`].join(" ");
+
+      addSvgElement(svg, "polygon", { points: areaPoints, class: "area" });
+      addSvgElement(svg, "polyline", { points: linePoints, class: "line" });
+
+      points.forEach((point) => {
+        if (!denseView) {
+          addSvgElement(svg, 'circle', { cx: point.x, cy: point.y, r: 3.5, class: 'point' });
+        }
+        const hit = addSvgElement(svg, 'circle', { cx: point.x, cy: point.y, r: denseView ? 7 : 10, class: 'point-hit' });
+        hit.addEventListener('mouseenter', (event) => showTooltip(event, point.item));
+        hit.addEventListener('mousemove', (event) => showTooltip(event, point.item));
+        hit.addEventListener('mouseleave', hideTooltip);
+      });
+
+      let labelIndexes;
+      if (isAllTimeView && denseView) {
+        labelIndexes = [];
+        let previousMonth = '';
+        chartData.forEach((item, index) => {
+          const month = item.date.slice(0, 7);
+          if (month !== previousMonth) {
+            labelIndexes.push(index);
+            previousMonth = month;
+          }
+        });
+      } else {
+        labelIndexes = [0, Math.floor(chartData.length * 0.25), Math.floor(chartData.length * 0.5), Math.floor(chartData.length * 0.75), chartData.length - 1];
+      }
+
+      [...new Set(labelIndexes)].forEach((index) => {
+        const point = points[index];
+        if (!point) return;
+        addSvgElement(svg, "line", { x1: point.x, y1: top + plotHeight, x2: point.x, y2: top + plotHeight + 6, class: "grid-line" });
+        const label = addSvgElement(svg, "text", { x: point.x, y: height - 12, "text-anchor": "middle", class: "axis-label" });
+        label.textContent = isAllTimeView && denseView ? point.item.date.slice(0, 7) : point.item.date;
+      });
+    }
+
+    function renderDailyWordChart() {
+      const svg = document.getElementById("dailyWordsChart");
+      svg.innerHTML = '';
+      const chartData = getDailyWordDataForWindow();
+      const isAllTimeView = currentDailyWindow === 'all';
+      const denseView = chartData.length > 180;
+      const width = 1160;
+      const height = 280;
+      const left = 56;
+      const right = 20;
+      const top = 18;
+      const bottom = 36;
+      const plotWidth = width - left - right;
+      const plotHeight = height - top - bottom;
+      const maxValue = chartData.length ? Math.max(...chartData.map((item) => item.count)) : 1;
+      const steps = 5;
+
+      for (let i = 0; i <= steps; i += 1) {
+        const y = top + (plotHeight / steps) * i;
+        const value = Math.round(maxValue - (maxValue / steps) * i);
+        addSvgElement(svg, "line", { x1: left, y1: y, x2: width - right, y2: y, class: "grid-line" });
+        const label = addSvgElement(svg, "text", { x: left - 10, y: y + 4, "text-anchor": "end", class: "axis-label" });
+        label.textContent = value;
+      }
+
+      const xStep = plotWidth / Math.max(chartData.length - 1, 1);
+      const points = chartData.map((item, index) => {
+        const x = left + index * xStep;
+        const y = top + plotHeight - (item.count / maxValue) * plotHeight;
+        return { x, y, item: { ...item, metricLabel: 'words' } };
+      });
+
+      if (!points.length) {
+        return;
+      }
+
+      const linePoints = points.map((point) => `${point.x},${point.y}`).join(" ");
+      const areaPoints = [`${left},${top + plotHeight}`, ...points.map((point) => `${point.x},${point.y}`), `${points[points.length - 1].x},${top + plotHeight}`].join(" ");
+
+      addSvgElement(svg, "polygon", { points: areaPoints, fill: 'rgba(37, 99, 235, 0.14)' });
+      addSvgElement(svg, "polyline", { points: linePoints, fill: 'none', stroke: '#2563eb', 'stroke-width': '2.5' });
+
+      points.forEach((point) => {
+        if (!denseView) {
+          addSvgElement(svg, 'circle', { cx: point.x, cy: point.y, r: 3.5, fill: '#2563eb' });
+        }
+        const hit = addSvgElement(svg, 'circle', { cx: point.x, cy: point.y, r: denseView ? 7 : 10, class: 'point-hit' });
+        hit.addEventListener('mouseenter', (event) => showTooltip(event, point.item));
+        hit.addEventListener('mousemove', (event) => showTooltip(event, point.item));
+        hit.addEventListener('mouseleave', hideTooltip);
+      });
+
+      let labelIndexes;
+      if (isAllTimeView && denseView) {
+        labelIndexes = [];
+        let previousMonth = '';
+        chartData.forEach((item, index) => {
+          const month = item.date.slice(0, 7);
+          if (month !== previousMonth) {
+            labelIndexes.push(index);
+            previousMonth = month;
+          }
+        });
+      } else {
+        labelIndexes = [0, Math.floor(chartData.length * 0.25), Math.floor(chartData.length * 0.5), Math.floor(chartData.length * 0.75), chartData.length - 1];
+      }
+
+      [...new Set(labelIndexes)].forEach((index) => {
+        const point = points[index];
+        if (!point) return;
+        addSvgElement(svg, "line", { x1: point.x, y1: top + plotHeight, x2: point.x, y2: top + plotHeight + 6, class: "grid-line" });
+        const label = addSvgElement(svg, "text", { x: point.x, y: height - 12, "text-anchor": "middle", class: "axis-label" });
+        label.textContent = isAllTimeView && denseView ? point.item.date.slice(0, 7) : point.item.date;
+      });
+    }
+
+    function renderMonthlyChart() {
+      const svg = document.getElementById("monthlyChart");
+      svg.innerHTML = '';
+      const width = 1160;
+      const height = 320;
+      const left = 56;
+      const right = 20;
+      const top = 18;
+      const bottom = 54;
+      const plotWidth = width - left - right;
+      const plotHeight = height - top - bottom;
+      const maxValue = Math.max(...monthlyData.map((item) => item.count));
+      const steps = 5;
+
+      for (let i = 0; i <= steps; i += 1) {
+        const y = top + (plotHeight / steps) * i;
+        const value = Math.round(maxValue - (maxValue / steps) * i);
+        addSvgElement(svg, "line", { x1: left, y1: y, x2: width - right, y2: y, class: "grid-line" });
+        const label = addSvgElement(svg, "text", { x: left - 10, y: y + 4, "text-anchor": "end", class: "axis-label" });
+        label.textContent = value;
+      }
+
+      const gap = 10;
+      const barWidth = (plotWidth - gap * (monthlyData.length - 1)) / monthlyData.length;
+
+      monthlyData.forEach((item, index) => {
+        const barHeight = (item.count / maxValue) * plotHeight;
+        const x = left + index * (barWidth + gap);
+        const y = top + plotHeight - barHeight;
+
+        addSvgElement(svg, "rect", {
+          x,
+          y,
+          width: barWidth,
+          height: barHeight,
+          rx: 6,
+          class: "bar"
+        });
+
+        const valueLabel = addSvgElement(svg, "text", {
+          x: x + barWidth / 2,
+          y: y - 6,
+          "text-anchor": "middle",
+          class: "axis-label"
+        });
+        valueLabel.textContent = item.count;
+
+        const monthLabel = addSvgElement(svg, "text", {
+          x: x + barWidth / 2,
+          y: height - 18,
+          "text-anchor": "middle",
+          class: "axis-label",
+          transform: `rotate(-35 ${x + barWidth / 2} ${height - 18})`
+        });
+        monthLabel.textContent = item.month;
+      });
+    }
+
+    async function loadCharts() {
+      const rows = await QuranProgressStore.getWorkingRows();
+      const datedRows = rows.filter((row) => row && row['Date Learnt']);
+      const dailyMap = new Map();
+      const dailyWordMap = new Map();
+      const monthlyMap = new Map();
+
+      datedRows.forEach((row) => {
+        const date = new Date(row['Date Learnt']);
+        const dayKey = date.toISOString().slice(0, 10);
+        const monthKey = dayKey.slice(0, 7);
+        dailyMap.set(dayKey, (dailyMap.get(dayKey) || 0) + 1);
+        dailyWordMap.set(dayKey, (dailyWordMap.get(dayKey) || 0) + (Number(row && row.WORDS) || 0));
+        monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + 1);
+      });
+
+      dailyData = [...dailyMap.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([date, count]) => ({ date, count }));
+
+      dailyWordData = [...dailyWordMap.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([date, count]) => ({ date, count }));
+
+      monthlyData = [...monthlyMap.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([month, count]) => ({ month, count }));
+
+      const totalLearnt = dailyData.reduce((sum, item) => sum + item.count, 0);
+      const bestDayEntry = dailyData.length ? dailyData.reduce((best, item) => item.count > best.count ? item : best, dailyData[0]) : { count: 0, date: '-' };
+      const bestMonthEntry = monthlyData.length ? monthlyData.reduce((best, item) => item.count > best.count ? item : best, monthlyData[0]) : { count: 0, month: '-' };
+
+      document.getElementById('totalLearnt').textContent = totalLearnt.toLocaleString();
+      document.getElementById('uniqueDays').textContent = dailyData.length.toLocaleString();
+      document.getElementById('bestDay').textContent = `${bestDayEntry.count} (${bestDayEntry.date})`;
+      document.getElementById('bestMonth').textContent = `${bestMonthEntry.count} (${bestMonthEntry.month})`;
+
+      renderDailyChart();
+      renderDailyWordChart();
+      renderMonthlyChart();
+    }
+
+    document.getElementById('dailyWindowSelect').addEventListener('change', (event) => {
+      currentDailyWindow = event.target.value;
+      renderDailyChart();
+      renderDailyWordChart();
+      hideTooltip();
+    });
+
+    loadCharts().catch(() => {
+      document.getElementById('totalLearnt').textContent = '0';
+      document.getElementById('uniqueDays').textContent = '0';
+      document.getElementById('bestDay').textContent = '0 (-)';
+      document.getElementById('bestMonth').textContent = '0 (-)';
+    });
+  </script>
+</body>
+</html>

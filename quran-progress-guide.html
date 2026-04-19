@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quran Progress Tracker Guide</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --panel: #fffdf8;
+      --panel-2: #f8f3e8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d6c7a8;
+      --accent: #0f766e;
+      --accent-2: #134e4a;
+      --shadow: 0 18px 40px rgba(50, 36, 12, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 24%),
+        linear-gradient(180deg, #faf7f0 0%, var(--bg) 100%);
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(15,118,110,0.12), rgba(250,247,240,0.92));
+      text-align: center;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+    }
+
+    .subtext {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .bismillah-arabic {
+      margin: 0 0 10px;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      line-height: 1.5;
+      color: var(--accent-2);
+    }
+
+    .bismillah-english {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 1rem;
+      font-style: italic;
+    }
+
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+      justify-content: center;
+    }
+
+    .hero-links a {
+      display: inline-block;
+      text-decoration: none;
+      padding: 11px 15px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--accent-2);
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    ol, ul {
+      margin: 0;
+      padding-left: 22px;
+      line-height: 1.7;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    code {
+      background: #f4efe2;
+      border: 1px solid #eadfc6;
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.95em;
+    }
+
+    .full {
+      margin-top: 18px;
+    }
+
+    .note {
+      background: var(--panel-2);
+      border: 1px solid #eadfc6;
+      border-radius: 16px;
+      padding: 16px 18px;
+      line-height: 1.7;
+    }
+
+    .section-title {
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <p class="bismillah-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+      <p class="bismillah-english">In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+      <h1>Quran Progress Tracker Guide</h1>
+      <p class="subtext">This guide explains how to launch, use, and keep your own progress in the GitHub Pages version of the tracker.</p>
+      <div class="hero-links">
+        <a href="./quran-progress-tracker.html">Open Tracker</a>
+        <a href="./quran-progress-summary.html">Open Summary</a>
+        <a href="./quran-progress-trends.html">Open Trends</a>
+        <a href="./quran-reference-settings.html">Open Settings</a>
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2 class="section-title">Why Keep Going</h2>
+      <div class="note">
+        Learning the Quran is a journey of patience, consistency, and barakah. Allah says, "And We have certainly made the Quran easy to remember. So is there anyone who will be mindful?" (Quran 54:17). The Prophet (peace be upon him) said, "The best among you are those who learn the Quran and teach it." (Sahih al-Bukhari 5027). Even small daily progress matters.
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2 class="section-title">1. What This Version Uses</h2>
+        <ul>
+          <li><code>quran-progress-tracker.html</code> is the main tracker.</li>
+          <li><code>quran-progress-summary.html</code> shows progress overview charts.</li>
+          <li><code>quran-progress-trends.html</code> shows daily and monthly trends.</li>
+          <li><code>quran-reference-settings.html</code> controls reference links and visible columns.</li>
+          <li>Your verse progress is saved in your browser on your own device.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">2. How To Launch</h2>
+        <ol>
+          <li>Upload this folder to a GitHub repository.</li>
+          <li>Enable GitHub Pages for that repository.</li>
+          <li>Open the published site URL.</li>
+          <li>Use the tracker directly in the browser. No Node.js or local server is required.</li>
+        </ol>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">3. Daily Use</h2>
+        <ol>
+          <li>Search, filter, or use the header filters under each column.</li>
+          <li>Update the <code>LEARNT</code> and <code>MEMORISE</code> dropdowns row by row.</li>
+          <li>When you change <code>LEARNT</code> to <code>Yes</code>, the tracker fills <code>DATE LEARNT</code> automatically.</li>
+          <li>When you change <code>MEMORISE</code> to <code>Yes</code>, the tracker fills <code>DATE MEMORISED</code> automatically.</li>
+          <li>Click <code>Save Progress</code> to save your current work in the browser.</li>
+        </ol>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">4. Settings</h2>
+        <ol>
+          <li>Open <code>Reference Settings</code> from the tracker.</li>
+          <li>Choose which reference sources should open.</li>
+          <li>Choose which columns should be visible.</li>
+          <li>Save the settings and refresh the tracker if it is already open.</li>
+        </ol>
+      </section>
+    </div>
+
+    <section class="card full">
+      <h2 class="section-title">Features Available</h2>
+      <ul>
+        <li>Main table with search, paging, and column-wise filters.</li>
+        <li><code>Random Review Verse</code> to pick a random verse not yet marked as learnt.</li>
+        <li><code>Today's Progress</code> to show rows learnt today.</li>
+        <li><code>Updated verses</code> to show only the rows changed in your current session.</li>
+        <li><code>Open all references</code> to open the selected reference websites for a verse.</li>
+        <li><code>Close Reference Tabs</code> to close reference tabs opened by the tracker when the browser allows it.</li>
+        <li>Summary and trend pages that reflect your current browser-saved progress.</li>
+      </ul>
+    </section>
+
+    <section class="card full">
+      <h2 class="section-title">How Saving Works</h2>
+      <div class="note">
+        Your progress is saved in your browser on your own device. If another person opens the same site in their own browser, they will keep their own separate progress. This version does not need a server, but clearing browser storage will remove saved progress for that browser.
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2 class="section-title">Sharing With Someone Else</h2>
+      <ol>
+        <li>Share the GitHub repository or GitHub Pages link.</li>
+        <li>Each person can use the same site independently.</li>
+        <li>Each browser keeps its own saved progress.</li>
+        <li>No one overwrites another person's learning progress unless they share the same browser storage.</li>
+      </ol>
+    </section>
+
+    <section class="card full">
+      <h2 class="section-title">Troubleshooting</h2>
+      <ul>
+        <li>If the tracker looks old, refresh the page once.</li>
+        <li>If charts do not match the tracker, save your progress and refresh the chart page.</li>
+        <li>If settings do not appear, save them and then refresh the tracker.</li>
+        <li>If a reference tab does not close, that website may block script-based closing after it opens.</li>
+        <li>If browser data is cleared, the tracker returns to its original seeded data.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

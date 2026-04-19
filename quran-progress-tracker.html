@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quran Progress Tracker</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --panel: #fffdf8;
+      --panel-2: #f8f3e8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d6c7a8;
+      --accent: #0f766e;
+      --accent-2: #134e4a;
+      --header: #f0e6d2;
+      --shadow: 0 18px 40px rgba(50, 36, 12, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 24%),
+        linear-gradient(180deg, #faf7f0 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(15,118,110,0.12), rgba(250,247,240,0.92));
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: clamp(1.4rem, 2.2vw, 2rem);
+      line-height: 1.1;
+    }
+
+    .subtext {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .bismillah-arabic {
+      margin: 0 0 4px;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      line-height: 1.35;
+      color: var(--accent-2);
+    }
+
+    .bismillah-english {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-style: italic;
+    }
+
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      justify-content: center;
+    }
+
+    .hero-links a {
+      display: inline-block;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--accent-2);
+      font-weight: 600;
+      font-size: 0.82rem;
+      line-height: 1.1;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .hero-links a:hover {
+      background: #f4fbfa;
+    }
+
+    .hero-links a:active {
+      transform: translateY(1px);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.6fr 180px 180px auto auto auto;
+      gap: 12px;
+      margin: 12px 0 12px;
+      align-items: center;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    input, select, button {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+    }
+
+    button {
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover { background: var(--accent-2); }
+    button:active { transform: translateY(1px); }
+    button.secondary {
+      background: #fff;
+      color: var(--accent-2);
+      border-color: var(--border);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 0 4px 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: 70vh;
+      border-top: 1px solid var(--border);
+    }
+
+    table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--header);
+      text-align: left;
+      font-size: 0.92rem;
+      letter-spacing: 0.01em;
+    }
+
+    thead tr.filter-row th {
+      top: 42px;
+      z-index: 1;
+      background: #fbf6ea;
+      padding: 8px 10px;
+    }
+
+    .header-filter {
+      width: 100%;
+      min-width: 72px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.82rem;
+    }
+
+    .header-filter-spacer {
+      min-width: 132px;
+    }
+
+    .is-compact-column {
+      white-space: nowrap;
+    }
+
+    .compact-sura,
+    .compact-juz,
+    .compact-verse,
+    .compact-words,
+    .compact-letters {
+      width: 8.2ch;
+      min-width: 8.2ch;
+      max-width: 8.2ch;
+    }
+
+    .is-compact-column .header-filter {
+      min-width: 0;
+      width: 100%;
+      padding: 6px 4px;
+      text-align: center;
+    }
+
+    th, td {
+      border-bottom: 1px solid #eadfc6;
+      padding: 7px 8px;
+      vertical-align: top;
+      max-width: 220px;
+      word-break: break-word;
+      white-space: normal;
+      font-size: 0.9rem;
+    }
+
+    tbody tr:nth-child(even) { background: var(--panel-2); }
+    tbody tr:hover { background: #e9f6f4; }
+
+    .focus-row {
+      outline: 2px solid rgba(15, 118, 110, 0.45);
+      background: #dff5f2 !important;
+    }
+
+    .link-cell {
+      min-width: 150px;
+    }
+
+    .reference-link {
+      text-decoration: none;
+      display: inline-block;
+      padding: 7px 9px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--accent-2);
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .reference-link:hover {
+      background: #f4fbfa;
+    }
+
+    .learnt-select,
+    .memorise-select {
+      min-width: 84px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font: inherit;
+      font-size: 0.84rem;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0 0 16px;
+      align-items: center;
+    }
+
+    .action-row button {
+      width: auto;
+      min-width: 180px;
+    }
+
+    .status-text {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .pager {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding: 14px;
+      border-top: 1px solid var(--border);
+      background: #fcfaf4;
+    }
+
+    .status {
+      padding: 18px;
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15,118,110,0.08);
+      color: var(--accent-2);
+      border: 1px solid rgba(15,118,110,0.15);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+
+    .pill.is-clickable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pill.is-active {
+      background: rgba(15,118,110,0.16);
+      border-color: rgba(15,118,110,0.3);
+    }
+
+    @media (max-width: 980px) {
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .pager { justify-content: stretch; }
+      .pager button { flex: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { padding: 12px; }
+      .hero { padding: 12px; }
+      .toolbar { grid-template-columns: 1fr; }
+      th, td { max-width: 170px; padding: 6px 7px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <p class="bismillah-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+      <p class="bismillah-english">In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+      <h1>Quran Progress Tracker</h1>
+      <p class="subtext">View, filter, update, and manage your Quran verse progress in one searchable workspace.</p>
+      <div class="hero-links">
+        <a href="./quran-progress-guide.html">User Guide</a>
+        <a href="./quran-progress-summary.html">Progress Summary</a>
+        <a href="./quran-progress-trends.html">Progress Trends</a>
+        <a href="./quran-reference-settings.html">Settings</a>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <input id="searchInput" type="text" placeholder="Search across all columns..." />
+      <select id="rowsPerPage">
+        <option value="25">25 rows</option>
+        <option value="50" selected>50 rows</option>
+        <option value="100">100 rows</option>
+        <option value="250">250 rows</option>
+      </select>
+      <select id="columnFilter"></select>
+      <button id="prevBtn" class="secondary" type="button">Previous</button>
+      <button id="nextBtn" class="secondary" type="button">Next</button>
+      <button id="resetBtn" type="button">Reset</button>
+    </div>
+
+    <div class="action-row">
+      <button id="randomNotLearntBtn" class="secondary" type="button">Random Review Verse</button>
+      <button id="todaysReadBtn" class="secondary" type="button">Today's Progress</button>
+      <button id="closeReferencesBtn" class="secondary" type="button">Close Reference Tabs</button>
+      <button id="saveJsonBtn" type="button">Save Progress</button>
+      <button id="clearChangesBtn" class="secondary" type="button">Reset Unsaved Changes</button>
+      <span id="saveStatus" class="status-text">Review and save your latest updates when you're ready.</span>
+    </div>
+
+    <div class="meta">
+      <span class="pill" id="recordCount">Records: 0</span>
+      <span class="pill" id="visibleCount">Visible: 0</span>
+      <span class="pill" id="pageInfo">Page 1 of 1</span>
+      <span class="pill is-clickable" id="editedCount" role="button" tabindex="0" title="Show updated rows">Updated verses: 0</span>
+    </div>
+
+    <section class="panel">
+      <div id="tableStatus" class="status">Loading data...</div>
+      <div class="table-scroll" id="tableWrap" hidden>
+        <table>
+          <thead>
+            <tr id="tableHead"></tr>
+            <tr id="tableFilterRow" class="filter-row"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button id="prevBottomBtn" class="secondary" type="button">Previous</button>
+        <button id="nextBottomBtn" class="secondary" type="button">Next</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="./assets/quran-progress-seed.js"></script>
+  <script src="./assets/quran-progress-store.js"></script>
+
+  <script>
+    (async function () {
+    let originalRowsSnapshot = await QuranProgressStore.getSavedRows();
+    const rows = JSON.parse(JSON.stringify(originalRowsSnapshot));
+    let openedReferenceWindows = [];
+    const hiddenColumns = new Set([
+      'S.no',
+      'Surah Start Link',
+      'qurano',
+      'Learnt_Copy',
+      'Column1',
+      'Column2',
+      'Wordn'
+    ]);
+    const columnVisibilityStorageKey = 'quran-visible-columns';
+    const columns = [...rows.reduce((set, row) => {
+      Object.keys(row || {}).forEach((key) => set.add(key));
+      return set;
+    }, new Set())]
+      .filter((column) => !hiddenColumns.has(column));
+
+    function moveColumnsAfter(targetColumn, columnsToMove) {
+      const ordered = columns.filter((column) => !columnsToMove.includes(column));
+      const targetIndex = ordered.indexOf(targetColumn);
+      if (targetIndex === -1) {
+        ordered.push(...columnsToMove.filter((column) => columns.includes(column)));
+        return ordered;
+      }
+      ordered.splice(
+        targetIndex + 1,
+        0,
+        ...columnsToMove.filter((column) => columns.includes(column))
+      );
+      return ordered;
+    }
+
+    function getDefaultOrderedColumns() {
+      return moveColumnsAfter('Learnt', ['Quran Arabic', 'Translation']);
+    }
+
+    function loadVisibleColumns() {
+      const defaultColumns = getDefaultOrderedColumns();
+      const raw = localStorage.getItem(columnVisibilityStorageKey);
+      if (!raw) {
+        return defaultColumns;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return defaultColumns;
+        }
+        const validSet = new Set(parsed.filter((column) => defaultColumns.includes(column)));
+        return defaultColumns.filter((column) => validSet.has(column));
+      } catch (error) {
+        return defaultColumns;
+      }
+    }
+
+    let orderedColumns = loadVisibleColumns();
+
+    const searchInput = document.getElementById('searchInput');
+    const rowsPerPageSelect = document.getElementById('rowsPerPage');
+    const columnFilter = document.getElementById('columnFilter');
+    const tableHead = document.getElementById('tableHead');
+    const tableFilterRow = document.getElementById('tableFilterRow');
+    const tableBody = document.getElementById('tableBody');
+    const tableStatus = document.getElementById('tableStatus');
+    const tableWrap = document.getElementById('tableWrap');
+    const recordCount = document.getElementById('recordCount');
+    const visibleCount = document.getElementById('visibleCount');
+    const pageInfo = document.getElementById('pageInfo');
+    const editedCount = document.getElementById('editedCount');
+    const randomNotLearntBtn = document.getElementById('randomNotLearntBtn');
+    const todaysReadBtn = document.getElementById('todaysReadBtn');
+    const closeReferencesBtn = document.getElementById('closeReferencesBtn');
+    const saveJsonBtn = document.getElementById('saveJsonBtn');
+    const saveStatus = document.getElementById('saveStatus');
+    const clearChangesBtn = document.getElementById('clearChangesBtn');
+    const prevButtons = [document.getElementById('prevBtn'), document.getElementById('prevBottomBtn')];
+    const nextButtons = [document.getElementById('nextBtn'), document.getElementById('nextBottomBtn')];
+    const resetBtn = document.getElementById('resetBtn');
+
+    let currentPage = 1;
+    let filteredRows = rows.slice();
+    let focusedRowKey = null;
+    let showEditedRowsOnly = false;
+    const columnFilterInputs = new Map();
+    const rowIdField = rows.some((row) => row && row['S.no'] !== undefined) ? 'S.no' : null;
+    const pendingChangesStorageKey = 'quran-progress-pending-changes';
+    const referenceSettingsStorageKey = 'quran-reference-settings';
+    const pendingRowChanges = new Map();
+    const referenceConfigs = [
+      {
+        id: 'chatgpt',
+        label: 'ChatGPT',
+        description: 'AI-assisted tafsir and explanation search.',
+        buildUrl: ({ queryText }) => 'https://chatgpt.com/?q=' + queryText
+      },
+      {
+        id: 'perplexity',
+        label: 'Perplexity',
+        description: 'AI-powered search for verse-related references.',
+        buildUrl: ({ queryText }) => 'https://www.perplexity.ai/search?q=' + queryText
+      },
+      {
+        id: 'quranmorphology',
+        label: 'Quran Morphology',
+        description: 'Morphology overview for the selected ayah.',
+        buildUrl: ({ sura, verse }) => 'https://quranmorphology.com/ayah/' + encodeURIComponent(sura) + ':' + encodeURIComponent(verse)
+      },
+      {
+        id: 'corpus_word_by_word',
+        label: 'Corpus Word by Word',
+        description: 'Word-by-word breakdown from Corpus Quran.',
+        buildUrl: ({ sura, verse }) => 'https://corpus.quran.com/wordbyword.jsp?chapter=' + encodeURIComponent(sura) + '&verse=' + encodeURIComponent(verse)
+      },
+      {
+        id: 'tafheem',
+        label: 'Tafheem-ul-Quran',
+        description: 'Islamic Studies tafsir page for the verse.',
+        buildUrl: ({ sura, verse }) => 'https://islamicstudies.info/tafheem-orig.php?sura=' + encodeURIComponent(sura) + '&verse=' + encodeURIComponent(verse)
+      },
+      {
+        id: 'corpus_treebank',
+        label: 'Corpus Treebank',
+        description: 'Syntactic treebank view from Corpus Quran.',
+        buildUrl: ({ sura, verse }) => 'https://corpus.quran.com/treebank.jsp?chapter=' + encodeURIComponent(sura) + '&verse=' + encodeURIComponent(verse)
+      },
+      {
+        id: 'islam_awakened',
+        label: 'Islam Awakened',
+        description: 'Parallel translations and resources for the verse.',
+        buildUrl: ({ sura, verse }) => 'https://www.islamawakened.org/quran/' + encodeURIComponent(sura) + '/' + encodeURIComponent(verse)
+      },
+      {
+        id: 'quranwbw',
+        label: 'QuranWBW',
+        description: 'Word-by-word reading page.',
+        buildUrl: ({ sura, verse }) => 'https://quranwbw.com/' + encodeURIComponent(sura) + '#' + encodeURIComponent(verse)
+      },
+      {
+        id: 'quranwbw_morphology',
+        label: 'QuranWBW Morphology',
+        description: 'Morphology page from QuranWBW.',
+        buildUrl: ({ sura, verse }) => 'https://quranwbw.com/morphology/' + encodeURIComponent(sura) + ':' + encodeURIComponent(verse)
+      },
+      {
+        id: 'surahquran_tafsir',
+        label: 'Surah Quran Tafsir',
+        description: 'English tafsir page for the selected ayah.',
+        buildUrl: ({ sura, verse }) => 'https://surahquran.com/tafsir-english-aya-' + encodeURIComponent(verse) + '-sora-' + encodeURIComponent(sura) + '.html'
+      }
+    ];
+
+    function isEpochDate(value) {
+      return typeof value === 'number' && value > 946684800000 && value < 4102444800000;
+    }
+
+    function formatCellValue(key, value) {
+      if (value === null || value === undefined || value === '') return '';
+      if (isEpochDate(value) && /date/i.test(key)) {
+        return new Date(value).toLocaleDateString();
+      }
+      if (typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+      return String(value);
+    }
+
+    function formatDateValueForFilter(value) {
+      if (!isEpochDate(value)) return '';
+      return new Date(value).toISOString().slice(0, 10);
+    }
+
+    function getTodayLearntTimestamp() {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0).getTime();
+    }
+
+    function getTodayDateString() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function toSafeId(value) {
+      return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+
+    function isCompactColumn(column) {
+      return ['SURA', 'VERSE', 'WORDS', 'LETTERS', 'Juz'].includes(column);
+    }
+
+    function getCompactColumnClass(column) {
+      const compactClassMap = {
+        SURA: 'compact-sura',
+        VERSE: 'compact-verse',
+        WORDS: 'compact-words',
+        LETTERS: 'compact-letters',
+        Juz: 'compact-juz'
+      };
+      return compactClassMap[column] || '';
+    }
+
+    function getRowKey(row, index = rows.indexOf(row)) {
+      if (rowIdField && row && row[rowIdField] !== undefined && row[rowIdField] !== null) {
+        return String(row[rowIdField]);
+      }
+      return String(index);
+    }
+
+    function isLearntComplete(row) {
+      return String(row && row.Learnt !== null && row.Learnt !== undefined ? row.Learnt : '').trim().toLowerCase() === 'yes';
+    }
+
+    function getTodayMemorisedTimestamp() {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0).getTime();
+    }
+
+    function setPendingRowChange(rowKey, field, value) {
+      const existing = pendingRowChanges.get(rowKey) || {};
+      existing[field] = value;
+      pendingRowChanges.set(rowKey, existing);
+      savePendingChanges();
+    }
+
+    function savePendingChanges() {
+      const payload = Object.fromEntries(pendingRowChanges);
+      localStorage.setItem(pendingChangesStorageKey, JSON.stringify(payload));
+    }
+
+    function getUpdatedRowCount() {
+      return pendingRowChanges.size;
+    }
+
+    async function saveJsonToDisk() {
+      saveStatus.textContent = 'Saving your progress...';
+
+      try {
+        const savedRows = await QuranProgressStore.saveRows(rows);
+        originalRowsSnapshot = JSON.parse(JSON.stringify(savedRows));
+        pendingRowChanges.clear();
+        QuranProgressStore.clearPendingChanges(pendingChangesStorageKey);
+        showEditedRowsOnly = false;
+        focusedRowKey = null;
+        applyFilter();
+        saveStatus.textContent = 'Progress saved in this browser.';
+      } catch (error) {
+        saveStatus.textContent = 'Save failed in this browser. Please try again.';
+      }
+    }
+
+    function loadPendingChanges() {
+      const raw = localStorage.getItem(pendingChangesStorageKey);
+      if (!raw) {
+        updateEditedCountPill();
+        return;
+      }
+
+      try {
+        const parsedChanges = JSON.parse(raw);
+        Object.entries(parsedChanges).forEach(([key, value]) => {
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            pendingRowChanges.set(key, value);
+          } else {
+            pendingRowChanges.set(key, { Learnt: value });
+          }
+        });
+      } catch (error) {
+        localStorage.removeItem(pendingChangesStorageKey);
+      }
+
+      rows.forEach((row, index) => {
+        const key = getRowKey(row, index);
+        if (pendingRowChanges.has(key)) {
+          const changeSet = pendingRowChanges.get(key);
+          if (Object.prototype.hasOwnProperty.call(changeSet, 'Learnt')) {
+            row.Learnt = changeSet.Learnt;
+          }
+          if (Object.prototype.hasOwnProperty.call(changeSet, 'Memorise')) {
+            row.Memorise = changeSet.Memorise;
+          }
+          if (Object.prototype.hasOwnProperty.call(changeSet, 'Date Learnt')) {
+            row['Date Learnt'] = changeSet['Date Learnt'];
+          }
+          if (Object.prototype.hasOwnProperty.call(changeSet, 'Date Memorised')) {
+            row['Date Memorised'] = changeSet['Date Memorised'];
+          }
+        }
+      });
+      updateEditedCountPill();
+    }
+
+    function renderLearntEditor(row) {
+      const currentValue = row.Learnt === null || row.Learnt === undefined ? '' : String(row.Learnt);
+      const safeCurrentValue = currentValue.replace(/"/g, '&quot;');
+      return `
+        <select class="learnt-select" data-row-key="${getRowKey(row)}">
+          <option value=""${safeCurrentValue === '' ? ' selected' : ''}>Blank</option>
+          <option value="Yes"${safeCurrentValue === 'Yes' ? ' selected' : ''}>Yes</option>
+          <option value="No"${safeCurrentValue === 'No' ? ' selected' : ''}>No</option>
+        </select>
+      `;
+    }
+
+    function renderMemoriseEditor(row) {
+      const currentValue = row.Memorise === null || row.Memorise === undefined ? '' : String(row.Memorise);
+      const safeCurrentValue = currentValue.replace(/"/g, '&quot;');
+      return `
+        <select class="memorise-select" data-row-key="${getRowKey(row)}">
+          <option value=""${safeCurrentValue === '' ? ' selected' : ''}>Blank</option>
+          <option value="Yes"${safeCurrentValue === 'Yes' ? ' selected' : ''}>Yes</option>
+          <option value="No"${safeCurrentValue === 'No' ? ' selected' : ''}>No</option>
+        </select>
+      `;
+    }
+
+    function buildHeader() {
+      tableHead.innerHTML = '';
+      const linksHeader = document.createElement('th');
+      linksHeader.textContent = 'Reference Link';
+      tableHead.appendChild(linksHeader);
+
+      orderedColumns.forEach((column) => {
+        const th = document.createElement('th');
+        th.dataset.column = column;
+        if (isCompactColumn(column)) {
+          th.classList.add('is-compact-column');
+          th.classList.add(getCompactColumnClass(column));
+        }
+        th.textContent = column.toUpperCase();
+        tableHead.appendChild(th);
+      });
+    }
+
+    function buildVerseLinks(row) {
+      const sura = row.SURA;
+      const verse = row.VERSE;
+
+      if (!sura || !verse) {
+        return '';
+      }
+
+      const safeSura = String(sura).replace(/"/g, '&quot;');
+      const safeVerse = String(verse).replace(/"/g, '&quot;');
+      return '<button class="reference-link" type="button" data-sura="' + safeSura + '" data-verse="' + safeVerse + '">Open all references</button>';
+    }
+
+    function openAllReferences(sura, verse) {
+      const queryText = encodeURIComponent('quran tafsir ' + sura + ':' + verse);
+      const selectedReferenceIds = loadSelectedReferenceIds();
+      const selectedConfigs = referenceConfigs.filter((config) => selectedReferenceIds.includes(config.id));
+
+      if (!selectedConfigs.length) {
+        saveStatus.textContent = 'No reference links are selected. Open Reference Settings to choose which sources to use.';
+        return;
+      }
+
+      const urls = selectedConfigs.map((config) => config.buildUrl({ sura, verse, queryText }));
+
+      [...new Set(urls)].forEach((url) => {
+        const referenceWindow = window.open(url, '_blank');
+        if (referenceWindow) {
+          openedReferenceWindows.push(referenceWindow);
+        }
+      });
+
+      openedReferenceWindows = openedReferenceWindows.filter((referenceWindow) => {
+        return referenceWindow && !referenceWindow.closed;
+      });
+
+      if (openedReferenceWindows.length) {
+        saveStatus.textContent = `Opened ${openedReferenceWindows.length} reference tabs for ${sura}:${verse}.`;
+      } else {
+        saveStatus.textContent = 'Your browser blocked the reference tabs. Allow pop-ups for this page and try again.';
+      }
+    }
+
+    function loadSelectedReferenceIds() {
+      const defaultIds = referenceConfigs.map((config) => config.id);
+      const raw = localStorage.getItem(referenceSettingsStorageKey);
+      if (!raw) {
+        return defaultIds;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return defaultIds;
+        }
+        const validIds = parsed.filter((id) => defaultIds.includes(id));
+        return validIds.length ? validIds : defaultIds;
+      } catch (error) {
+        return defaultIds;
+      }
+    }
+
+    function closeOpenedReferenceTabs() {
+      let closedCount = 0;
+      openedReferenceWindows.forEach((referenceWindow) => {
+        if (referenceWindow && !referenceWindow.closed) {
+          referenceWindow.close();
+          closedCount += 1;
+        }
+      });
+      openedReferenceWindows = [];
+      saveStatus.textContent = closedCount
+        ? `Closed ${closedCount} reference tab${closedCount === 1 ? '' : 's'}.`
+        : 'No open reference tabs from this page were found.';
+    }
+
+    function buildColumnFilter() {
+      columnFilter.innerHTML = '';
+      const allOption = document.createElement('option');
+      allOption.value = '__all__';
+      allOption.textContent = 'All columns';
+      columnFilter.appendChild(allOption);
+
+      orderedColumns.forEach((column) => {
+        const option = document.createElement('option');
+        option.value = column;
+        option.textContent = column;
+        columnFilter.appendChild(option);
+      });
+    }
+
+    function buildColumnFilterInputs() {
+      tableFilterRow.innerHTML = '';
+      columnFilterInputs.clear();
+
+      const spacer = document.createElement('th');
+      spacer.className = 'header-filter-spacer';
+      tableFilterRow.appendChild(spacer);
+
+      orderedColumns.forEach((column) => {
+        const inputId = `filter-${toSafeId(column)}`;
+        const cell = document.createElement('th');
+        cell.dataset.column = column;
+        if (isCompactColumn(column)) {
+          cell.classList.add('is-compact-column');
+          cell.classList.add(getCompactColumnClass(column));
+        }
+        const input = document.createElement(column === 'Learnt' || column === 'Memorise' ? 'select' : 'input');
+        input.id = inputId;
+        input.className = 'header-filter';
+
+        if (column === 'Learnt' || column === 'Memorise') {
+          input.innerHTML = `
+            <option value="">All</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          `;
+        } else {
+          input.type = /date/i.test(column) ? 'date' : 'text';
+          if (input.type === 'text') {
+            input.placeholder = `Filter ${column}`;
+          }
+        }
+
+        input.dataset.column = column;
+        input.addEventListener('input', applyFilter);
+        input.addEventListener('change', applyFilter);
+
+        cell.appendChild(input);
+        tableFilterRow.appendChild(cell);
+        columnFilterInputs.set(column, input);
+      });
+    }
+
+    function getActiveColumnFilters() {
+      return orderedColumns
+        .map((column) => {
+          const input = columnFilterInputs.get(column);
+          const value = input ? input.value.trim().toLowerCase() : '';
+          return value ? { column, value } : null;
+        })
+        .filter(Boolean);
+    }
+
+    function updateEditedCountPill() {
+      editedCount.textContent = `Updated verses: ${getUpdatedRowCount().toLocaleString()}`;
+      editedCount.classList.toggle('is-active', showEditedRowsOnly);
+      editedCount.title = getUpdatedRowCount()
+        ? (showEditedRowsOnly ? 'Showing updated rows. Click to show all rows.' : 'Click to show only updated rows.')
+        : 'No updated rows yet.';
+    }
+
+    function applyFilter() {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const selectedColumn = columnFilter.value;
+      const activeColumnFilters = getActiveColumnFilters();
+
+      filteredRows = rows.filter((row) => {
+        const rowKey = getRowKey(row);
+        if (showEditedRowsOnly && !pendingRowChanges.has(rowKey)) {
+          return false;
+        }
+
+        const matchesSearch = !searchTerm || (
+          selectedColumn && selectedColumn !== '__all__'
+            ? formatCellValue(selectedColumn, row[selectedColumn]).toLowerCase().includes(searchTerm)
+            : orderedColumns.some((column) => formatCellValue(column, row[column]).toLowerCase().includes(searchTerm))
+        );
+
+        if (!matchesSearch) return false;
+
+        return activeColumnFilters.every(({ column, value }) =>
+          column === 'Learnt' || column === 'Memorise'
+            ? (value === 'yes'
+                ? String(row[column] || '').trim().toLowerCase() === 'yes'
+                : String(row[column] || '').trim().toLowerCase() !== 'yes')
+            : /date/i.test(column)
+              ? formatDateValueForFilter(row[column]) === value
+              : formatCellValue(column, row[column]).toLowerCase().includes(value)
+        );
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    function renderTable() {
+      const rowsPerPage = Number(rowsPerPageSelect.value);
+      const totalPages = Math.max(1, Math.ceil(filteredRows.length / rowsPerPage));
+      currentPage = Math.min(currentPage, totalPages);
+
+      const start = (currentPage - 1) * rowsPerPage;
+      const pageRows = filteredRows.slice(start, start + rowsPerPage);
+
+      tableBody.innerHTML = '';
+
+      if (!pageRows.length) {
+        tableWrap.hidden = true;
+        tableStatus.hidden = false;
+        tableStatus.textContent = 'No matching records found.';
+      } else {
+        const fragment = document.createDocumentFragment();
+
+        pageRows.forEach((row) => {
+          const tr = document.createElement('tr');
+          if (getRowKey(row) === focusedRowKey) {
+            tr.classList.add('focus-row');
+          }
+
+          const linksTd = document.createElement('td');
+          linksTd.className = 'link-cell';
+          linksTd.innerHTML = buildVerseLinks(row);
+          tr.appendChild(linksTd);
+
+          orderedColumns.forEach((column) => {
+            const td = document.createElement('td');
+            td.dataset.column = column;
+            if (isCompactColumn(column)) {
+              td.classList.add('is-compact-column');
+              td.classList.add(getCompactColumnClass(column));
+            }
+            if (column === 'Learnt') {
+              td.innerHTML = renderLearntEditor(row);
+            } else if (column === 'Memorise') {
+              td.innerHTML = renderMemoriseEditor(row);
+            } else {
+              td.textContent = formatCellValue(column, row[column]);
+            }
+            tr.appendChild(td);
+          });
+
+          fragment.appendChild(tr);
+        });
+
+        tableBody.appendChild(fragment);
+        tableStatus.hidden = true;
+        tableWrap.hidden = false;
+      }
+
+      recordCount.textContent = `Records: ${rows.length.toLocaleString()}`;
+      visibleCount.textContent = `Visible: ${filteredRows.length.toLocaleString()}`;
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      updateEditedCountPill();
+
+      const disablePrev = currentPage <= 1;
+      const disableNext = currentPage >= totalPages;
+      prevButtons.forEach((btn) => btn.disabled = disablePrev);
+      nextButtons.forEach((btn) => btn.disabled = disableNext);
+    }
+
+    prevButtons.forEach((btn) => btn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage -= 1;
+        renderTable();
+      }
+    }));
+
+    nextButtons.forEach((btn) => btn.addEventListener('click', () => {
+      const rowsPerPage = Number(rowsPerPageSelect.value);
+      const totalPages = Math.max(1, Math.ceil(filteredRows.length / rowsPerPage));
+      if (currentPage < totalPages) {
+        currentPage += 1;
+        renderTable();
+      }
+    }));
+
+    searchInput.addEventListener('input', applyFilter);
+    columnFilter.addEventListener('change', applyFilter);
+    rowsPerPageSelect.addEventListener('change', renderTable);
+    tableBody.addEventListener('click', (event) => {
+      const linkButton = event.target.closest('.reference-link');
+      if (!linkButton) return;
+      openAllReferences(linkButton.dataset.sura, linkButton.dataset.verse);
+    });
+    tableBody.addEventListener('change', (event) => {
+      const learntSelect = event.target.closest('.learnt-select');
+      if (learntSelect) {
+        const rowKey = learntSelect.dataset.rowKey;
+        const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
+        if (!row) return;
+
+        row.Learnt = learntSelect.value || null;
+        if (learntSelect.value === 'Yes') {
+          row['Date Learnt'] = getTodayLearntTimestamp();
+        }
+        setPendingRowChange(rowKey, 'Learnt', row.Learnt);
+        if (learntSelect.value === 'Yes') {
+          setPendingRowChange(rowKey, 'Date Learnt', row['Date Learnt']);
+        }
+        applyFilter();
+        return;
+      }
+
+      const memoriseSelect = event.target.closest('.memorise-select');
+      if (!memoriseSelect) return;
+
+      const rowKey = memoriseSelect.dataset.rowKey;
+      const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
+      if (!row) return;
+
+      row.Memorise = memoriseSelect.value || null;
+      if (memoriseSelect.value === 'Yes') {
+        row['Date Memorised'] = getTodayMemorisedTimestamp();
+      }
+      setPendingRowChange(rowKey, 'Memorise', row.Memorise);
+      if (memoriseSelect.value === 'Yes') {
+        setPendingRowChange(rowKey, 'Date Memorised', row['Date Memorised']);
+      }
+      applyFilter();
+    });
+    randomNotLearntBtn.addEventListener('click', () => {
+      const candidates = rows.filter((row) => !isLearntComplete(row));
+      if (!candidates.length) {
+        saveStatus.textContent = 'No not learnt rows are available.';
+        return;
+      }
+
+      const randomRow = candidates[Math.floor(Math.random() * candidates.length)];
+      focusedRowKey = getRowKey(randomRow);
+      searchInput.value = '';
+      columnFilter.value = '__all__';
+      columnFilterInputs.forEach((input) => {
+        input.value = '';
+      });
+      filteredRows = [randomRow];
+      currentPage = 1;
+      renderTable();
+      saveStatus.textContent = `Showing random not learnt row: ${formatCellValue('VerseNum', randomRow.VerseNum || '') || 'selected row'}. Use Reset to return to all rows.`;
+      const focusedRow = tableBody.querySelector('.focus-row');
+      if (focusedRow) {
+        focusedRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    });
+    todaysReadBtn.addEventListener('click', () => {
+      const today = getTodayDateString();
+      const todaysRows = rows.filter((row) => formatDateValueForFilter(row['Date Learnt']) === today);
+      if (!todaysRows.length) {
+        saveStatus.textContent = "No rows found for today's read.";
+        return;
+      }
+
+      focusedRowKey = null;
+      searchInput.value = '';
+      columnFilter.value = '__all__';
+      columnFilterInputs.forEach((input) => {
+        input.value = '';
+      });
+      filteredRows = todaysRows;
+      currentPage = 1;
+      renderTable();
+      saveStatus.textContent = `Showing today's read: ${todaysRows.length.toLocaleString()} row(s). Use Reset to return to all rows.`;
+      const firstRow = tableBody.querySelector('tr');
+      if (firstRow) {
+        firstRow.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    });
+    editedCount.addEventListener('click', () => {
+      if (!getUpdatedRowCount()) {
+        saveStatus.textContent = 'No updated rows are available yet.';
+        return;
+      }
+      showEditedRowsOnly = !showEditedRowsOnly;
+      focusedRowKey = null;
+      applyFilter();
+      saveStatus.textContent = showEditedRowsOnly
+        ? `Showing updated rows: ${filteredRows.length.toLocaleString()} row(s). Click Edited rows again or use Reset to return to all rows.`
+        : 'Showing all rows again.';
+    });
+    editedCount.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        editedCount.click();
+      }
+    });
+    closeReferencesBtn.addEventListener('click', () => {
+      closeOpenedReferenceTabs();
+    });
+    saveJsonBtn.addEventListener('click', () => {
+      saveJsonToDisk();
+    });
+    clearChangesBtn.addEventListener('click', () => {
+      pendingRowChanges.clear();
+      localStorage.removeItem(pendingChangesStorageKey);
+      showEditedRowsOnly = false;
+      rows.forEach((row, index) => {
+        row.Learnt = originalRowsSnapshot[index] ? originalRowsSnapshot[index].Learnt : row.Learnt;
+        row.Memorise = originalRowsSnapshot[index] ? originalRowsSnapshot[index].Memorise : row.Memorise;
+        row['Date Learnt'] = originalRowsSnapshot[index] ? originalRowsSnapshot[index]['Date Learnt'] : row['Date Learnt'];
+        row['Date Memorised'] = originalRowsSnapshot[index] ? originalRowsSnapshot[index]['Date Memorised'] : row['Date Memorised'];
+      });
+      applyFilter();
+    });
+    resetBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      columnFilter.value = '__all__';
+      rowsPerPageSelect.value = '50';
+      showEditedRowsOnly = false;
+      columnFilterInputs.forEach((input) => {
+        input.value = '';
+      });
+      filteredRows = rows.slice();
+      focusedRowKey = null;
+      currentPage = 1;
+      renderTable();
+    });
+
+    loadPendingChanges();
+    buildHeader();
+    buildColumnFilter();
+    buildColumnFilterInputs();
+    renderTable();
+    })();
+  </script>
+</body>
+</html>

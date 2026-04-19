@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quran Progress Summary</title>
+  <style>
+    :root {
+      --bg: #f5efe4;
+      --panel: #fffdf8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #dcc9a3;
+      --yes: #0f766e;
+      --empty: #d97706;
+      --shadow: 0 20px 50px rgba(74, 54, 17, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.14), transparent 24%),
+        linear-gradient(180deg, #fbf7ef 0%, var(--bg) 100%);
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+
+    .card {
+      width: min(920px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 3vw, 2.1rem);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.35;
+    }
+
+    .bismillah-arabic {
+      margin: 0 0 6px;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      line-height: 1.35;
+      color: #134e4a;
+    }
+
+    .bismillah-english {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    .chart-panel {
+      display: grid;
+      gap: 8px;
+    }
+
+    .chart-wrap {
+      display: grid;
+      place-items: center;
+    }
+
+    .chart {
+      width: min(40vw, 190px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 8px solid rgba(255, 255, 255, 0.9);
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, 0.06);
+      position: relative;
+    }
+
+    .chart::after {
+      content: "";
+      position: absolute;
+      inset: 32%;
+      background: var(--panel);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, 0.06);
+    }
+
+    .chart-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 1;
+      text-align: center;
+      padding: 12px;
+      pointer-events: none;
+    }
+
+    .chart-center strong {
+      display: block;
+      font-size: 1.1rem;
+    }
+
+    .chart-center span {
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+
+    .legend {
+      display: grid;
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: grid;
+      grid-template-columns: 14px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+    }
+
+    .label strong {
+      display: block;
+      font-size: 0.84rem;
+    }
+
+    .label span {
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .value {
+      text-align: right;
+    }
+
+    .value strong {
+      display: block;
+      font-size: 0.86rem;
+    }
+
+    .value span {
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .actions {
+      margin-top: 12px;
+    }
+
+    .actions a {
+      display: inline-block;
+      text-decoration: none;
+      color: white;
+      background: #0f766e;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 760px) {
+      .card { padding: 14px; }
+      .layout { grid-template-columns: 1fr; }
+      .chart { width: min(62vw, 170px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="bismillah-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+    <p class="bismillah-english">In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+    <h1>Quran Progress Overview</h1>
+    <p class="subtitle">A live overview of learning progress, word completion, and memorisation status.</p>
+
+    <section class="layout">
+      <div class="chart-panel">
+        <div class="chart-wrap">
+          <div class="chart" id="pieChartRows">
+            <div class="chart-center">
+              <div>
+                <strong id="totalCount">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend" id="legendRows"></div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="chart-wrap">
+          <div class="chart" id="pieChartWords">
+            <div class="chart-center">
+              <div>
+                <strong id="totalWordsCount">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend" id="legendWords"></div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="chart-wrap">
+          <div class="chart" id="pieChartMemorise">
+            <div class="chart-center">
+              <div>
+                <strong id="totalMemoriseCount">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend" id="legendMemorise"></div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <a href="./quran-progress-tracker.html">Back to Tracker</a>
+    </div>
+  </main>
+
+  <script src="./assets/quran-progress-seed.js"></script>
+  <script src="./assets/quran-progress-store.js"></script>
+  <script>
+    const chartRows = document.getElementById("pieChartRows");
+    const chartWords = document.getElementById("pieChartWords");
+    const chartMemorise = document.getElementById("pieChartMemorise");
+    const legendRows = document.getElementById("legendRows");
+    const legendWords = document.getElementById("legendWords");
+    const legendMemorise = document.getElementById("legendMemorise");
+    const totalCount = document.getElementById("totalCount");
+    const totalWordsCount = document.getElementById("totalWordsCount");
+    const totalMemoriseCount = document.getElementById("totalMemoriseCount");
+
+    function renderPie(chart, legend, totalEl, data) {
+      const total = data.reduce((sum, item) => sum + item.count, 0);
+      totalEl.textContent = total.toLocaleString();
+      legend.innerHTML = '';
+
+      let runningPercent = 0;
+      const segments = data.map((item) => {
+        const start = runningPercent;
+        const slice = total ? (item.count / total) * 100 : 0;
+        runningPercent += slice;
+        return `${item.color} ${start}% ${runningPercent}%`;
+      });
+
+      chart.style.background = `conic-gradient(${segments.join(', ')})`;
+
+      data.forEach((item) => {
+        const percent = total ? ((item.count / total) * 100).toFixed(2) : '0.00';
+        const row = document.createElement('div');
+        row.className = 'legend-item';
+        row.innerHTML = `
+          <span class="swatch" style="background:${item.color}"></span>
+          <div class="label">
+            <strong>${item.label}</strong>
+            <span>${item.note}</span>
+          </div>
+          <div class="value">
+            <strong>${item.count.toLocaleString()}</strong>
+            <span>${percent}%</span>
+          </div>
+        `;
+        legend.appendChild(row);
+      });
+    }
+
+    async function loadChart() {
+      const rows = await QuranProgressStore.getWorkingRows();
+      const learntRows = rows.filter((row) => String(row && row.Learnt ? row.Learnt : '').trim().toLowerCase() === 'yes');
+
+      const rowData = [
+        { label: 'Completed', count: learntRows.length, color: '#0f766e', note: 'Verses marked as learnt' },
+        { label: 'Pending', count: rows.length - learntRows.length, color: '#d97706', note: 'Verses not yet marked as learnt' }
+      ];
+
+      const totalWords = rows.reduce((sum, row) => sum + (Number(row && row.WORDS) || 0), 0);
+      const learntWords = learntRows.reduce((sum, row) => sum + (Number(row && row.WORDS) || 0), 0);
+      const wordData = [
+        { label: 'Completed', count: learntWords, color: '#0f766e', note: 'Words from verses marked as learnt' },
+        { label: 'Remaining', count: Math.max(0, totalWords - learntWords), color: '#b45309', note: 'Words still pending completion' }
+      ];
+
+      const memorisedRows = rows.filter((row) => String(row && row.Memorise ? row.Memorise : '').trim().toLowerCase() === 'yes');
+      const memoriseData = [
+        { label: 'Memorised', count: memorisedRows.length, color: '#2563eb', note: 'Verses marked as memorised' },
+        { label: 'Not memorised', count: rows.length - memorisedRows.length, color: '#9333ea', note: 'Verses not yet marked as memorised' }
+      ];
+
+      renderPie(chartRows, legendRows, totalCount, rowData);
+      renderPie(chartWords, legendWords, totalWordsCount, wordData);
+      renderPie(chartMemorise, legendMemorise, totalMemoriseCount, memoriseData);
+    }
+
+    loadChart().catch(() => {
+      totalCount.textContent = '0';
+      totalWordsCount.textContent = '0';
+      totalMemoriseCount.textContent = '0';
+      const errorMarkup = '<div class="legend-item"><div class="label"><strong>Unable to load progress data</strong><span>Refresh the page and try again.</span></div></div>';
+      legendRows.innerHTML = errorMarkup;
+      legendWords.innerHTML = errorMarkup;
+      legendMemorise.innerHTML = errorMarkup;
+    });
+  </script>
+</body>
+</html>
