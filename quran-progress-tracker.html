@@ -501,6 +501,7 @@
       <p class="subtext">View, filter, update, and manage your Quran verse progress in one searchable workspace.</p>
       <div class="hero-links">
         <a href="./quran-progress-guide.html">User Guide</a>
+        <a href="./quran-progress-motivation.html">Why Use A Tracker</a>
         <a href="./quran-progress-summary.html">Progress Summary</a>
         <a href="./quran-progress-trends.html">Progress Trends</a>
         <a href="./quran-reference-settings.html">Settings</a>
@@ -512,9 +513,12 @@
       <button id="todaysReadBtn" class="secondary" type="button">Today's Progress</button>
       <button id="closeReferencesBtn" class="secondary" type="button">Close Reference Tabs</button>
       <button id="saveJsonBtn" type="button">Save Progress</button>
+      <button id="downloadBackupBtn" class="secondary" type="button">Download Backup</button>
+      <button id="restoreBackupBtn" class="secondary" type="button">Restore Backup</button>
       <button id="clearChangesBtn" class="secondary" type="button">Reset Unsaved Changes</button>
       <span id="saveStatus" class="status-text">Review and save your latest updates when you're ready.</span>
     </div>
+    <input id="restoreBackupInput" type="file" accept=".json,application/json" hidden />
 
     <div class="meta">
       <label class="meta-control" for="rowsPerPage">
@@ -634,6 +638,9 @@
     const todaysReadBtn = document.getElementById('todaysReadBtn');
     const closeReferencesBtn = document.getElementById('closeReferencesBtn');
     const saveJsonBtn = document.getElementById('saveJsonBtn');
+    const downloadBackupBtn = document.getElementById('downloadBackupBtn');
+    const restoreBackupBtn = document.getElementById('restoreBackupBtn');
+    const restoreBackupInput = document.getElementById('restoreBackupInput');
     const saveStatus = document.getElementById('saveStatus');
     const clearChangesBtn = document.getElementById('clearChangesBtn');
     const prevButtons = [document.getElementById('prevBtn'), document.getElementById('prevBottomBtn')];
@@ -819,6 +826,15 @@
       return pendingRowChanges.size;
     }
 
+    function replaceRows(nextRows) {
+      rows.splice(0, rows.length, ...JSON.parse(JSON.stringify(nextRows)));
+    }
+
+    function getBackupFileName() {
+      const stamp = new Date().toISOString().slice(0, 10);
+      return `quran-progress-backup-${stamp}.json`;
+    }
+
     async function saveJsonToDisk() {
       saveStatus.textContent = 'Saving your progress...';
 
@@ -833,6 +849,59 @@
         saveStatus.textContent = 'Progress saved in this browser.';
       } catch (error) {
         saveStatus.textContent = 'Save failed in this browser. Please try again.';
+      }
+    }
+
+    function downloadBackupFile() {
+      saveStatus.textContent = 'Preparing your backup file...';
+
+      try {
+        const payload = QuranProgressStore.createBackupPayload(rows, {
+          includesUnsavedChanges: pendingRowChanges.size > 0
+        });
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = getBackupFileName();
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        saveStatus.textContent = 'Backup downloaded. Keep this file somewhere safe in case browser data is cleared.';
+      } catch (error) {
+        saveStatus.textContent = 'Backup download failed. Please try again.';
+      }
+    }
+
+    async function restoreBackupFile(file) {
+      if (!file) {
+        return;
+      }
+
+      saveStatus.textContent = 'Restoring backup file...';
+
+      try {
+        const text = await file.text();
+        const payload = JSON.parse(text);
+        const restoredRows = await QuranProgressStore.importBackupPayload(payload);
+        originalRowsSnapshot = JSON.parse(JSON.stringify(restoredRows));
+        replaceRows(restoredRows);
+        pendingRowChanges.clear();
+        QuranProgressStore.clearPendingChanges(pendingChangesStorageKey);
+        showEditedRowsOnly = false;
+        focusedRowKey = null;
+        columnFilterInputs.forEach((input) => {
+          input.value = '';
+        });
+        filteredRows = rows.slice();
+        currentPage = 1;
+        renderTable();
+        saveStatus.textContent = 'Backup restored in this browser.';
+      } catch (error) {
+        saveStatus.textContent = 'Restore failed. Please choose a valid backup JSON file.';
+      } finally {
+        restoreBackupInput.value = '';
       }
     }
 
@@ -1297,6 +1366,16 @@
     });
     saveJsonBtn.addEventListener('click', () => {
       saveJsonToDisk();
+    });
+    downloadBackupBtn.addEventListener('click', () => {
+      downloadBackupFile();
+    });
+    restoreBackupBtn.addEventListener('click', () => {
+      restoreBackupInput.click();
+    });
+    restoreBackupInput.addEventListener('change', () => {
+      const [file] = restoreBackupInput.files || [];
+      restoreBackupFile(file);
     });
     clearChangesBtn.addEventListener('click', () => {
       pendingRowChanges.clear();

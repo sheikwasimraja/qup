@@ -13,6 +13,10 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  function isPlainObject(value) {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
+  }
+
   function repairUtf8Mojibake(value) {
     if (typeof value !== 'string' || !/[\u00D8\u00D9]/.test(value)) {
       return value;
@@ -215,12 +219,46 @@
   }
 
   async function saveRows(rows) {
+    if (!Array.isArray(rows) || rows.some((row) => !isPlainObject(row))) {
+      throw new Error('Invalid rows payload.');
+    }
+
     const clonedRows = normalizeRows(clone(rows)).rows;
     await Promise.all([
       writeValue(DATA_KEY, clonedRows),
       writeValue(META_KEY, seedVersion)
     ]);
     return clonedRows;
+  }
+
+  function createBackupPayload(rows, metadata = {}) {
+    if (!Array.isArray(rows) || rows.some((row) => !isPlainObject(row))) {
+      throw new Error('Invalid rows payload.');
+    }
+
+    return {
+      app: 'quran-progress-tracker',
+      formatVersion: 1,
+      exportedAt: new Date().toISOString(),
+      seedVersion,
+      rowCount: rows.length,
+      ...metadata,
+      rows: clone(rows)
+    };
+  }
+
+  async function importBackupPayload(payload) {
+    const rows = Array.isArray(payload)
+      ? payload
+      : payload && Array.isArray(payload.rows)
+        ? payload.rows
+        : null;
+
+    if (!Array.isArray(rows) || rows.some((row) => !isPlainObject(row))) {
+      throw new Error('Backup file does not contain valid rows.');
+    }
+
+    return saveRows(rows);
   }
 
   async function resetSavedRowsToSeed() {
@@ -252,9 +290,11 @@
   window.QuranProgressStore = {
     applyPendingChanges,
     clearPendingChanges,
+    createBackupPayload,
     getColumnList,
     getSavedRows,
     getWorkingRows,
+    importBackupPayload,
     resetSavedRowsToSeed,
     saveRows,
     seedVersion

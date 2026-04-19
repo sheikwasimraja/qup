@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f766e'/%3E%3Ctext x='32' y='42' font-size='28' text-anchor='middle' fill='white' font-family='Arial'%3EQ%3C/text%3E%3C/svg%3E" />
+  <title>Why Use A Quran Tracker</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --panel: #fffdf8;
+      --panel-2: #f8f3e8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d6c7a8;
+      --accent: #0f766e;
+      --accent-2: #134e4a;
+      --shadow: 0 18px 40px rgba(50, 36, 12, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 24%),
+        linear-gradient(180deg, #faf7f0 0%, var(--bg) 100%);
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(15,118,110,0.12), rgba(250,247,240,0.92));
+      text-align: center;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+    }
+
+    .subtext {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .bismillah-arabic {
+      margin: 0 0 10px;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      line-height: 1.5;
+      color: var(--accent-2);
+    }
+
+    .bismillah-english {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 1rem;
+      font-style: italic;
+    }
+
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+      justify-content: center;
+    }
+
+    .hero-links a {
+      display: inline-block;
+      text-decoration: none;
+      padding: 11px 15px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--accent-2);
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .lead-card {
+      margin-bottom: 18px;
+    }
+
+    .lead-card h2,
+    .card h2 {
+      margin-bottom: 12px;
+    }
+
+    .lead-card p,
+    .card p,
+    li {
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .note {
+      background: var(--panel-2);
+      border: 1px solid #eadfc6;
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+
+    .prompt-box {
+      background: linear-gradient(180deg, #fffaf0 0%, #f8f3e8 100%);
+      border: 1px dashed #c7ae74;
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .prompt-box strong {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--accent-2);
+      font-size: 1rem;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    blockquote {
+      margin: 14px 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      background: #fffcf6;
+      border-radius: 0 14px 14px 0;
+    }
+
+    blockquote p {
+      margin: 0;
+      font-size: 1.02rem;
+    }
+
+    .source {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .ayah {
+      font-size: 1.15rem;
+      line-height: 1.9;
+      direction: rtl;
+      text-align: right;
+      color: var(--accent-2);
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .full {
+      margin-top: 18px;
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 16px;
+      }
+
+      .hero,
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <p class="bismillah-arabic">&#x0628;&#x0650;&#x0633;&#x0652;&#x0645;&#x0650; &#x0627;&#x0644;&#x0644;&#x064E;&#x0651;&#x0647;&#x0650; &#x0627;&#x0644;&#x0631;&#x064E;&#x0651;&#x062D;&#x0652;&#x0645;&#x064E;&#x0670;&#x0646;&#x0650; &#x0627;&#x0644;&#x0631;&#x064E;&#x0651;&#x062D;&#x0650;&#x064A;&#x0645;&#x0650;</p>
+      <p class="bismillah-english">In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+      <h1>Why Use A Quran Tracker</h1>
+      <p class="subtext">A tracker helps turn sincere intention into steady action by making progress visible, habits easier to maintain, and reflection part of the journey.</p>
+      <div class="hero-links">
+        <a href="./quran-progress-tracker.html">Open Tracker</a>
+        <a href="./quran-progress-guide.html">Open Guide</a>
+        <a href="./quran-progress-summary.html">Open Summary</a>
+      </div>
+    </section>
+
+    <section class="card lead-card">
+      <h2>Why We Need A Tracker</h2>
+      <p>One of the reasons we need a tracker is because every one of us should have the intention of understanding the Qur'an and growing closer to Allah through knowledge. Even if someone dies while they are in the path of seeking knowledge, they can still receive the reward for their intention and effort.</p>
+
+      <blockquote>
+        <p>"Whoever travels a path in search of knowledge, Allah will make easy for him a path to Paradise."</p>
+        <div class="source">Sahih Muslim 2699a / 2699</div>
+      </blockquote>
+
+      <blockquote>
+        <p>"Actions are only by intentions, and every person will have only what they intended."</p>
+        <div class="source">Sahih al-Bukhari 1, 54, 6689 and Sahih Muslim 1907</div>
+      </blockquote>
+
+      <blockquote>
+        <p>"Whoever intends to do a good deed but does not do it, Allah records it with Himself as a complete good deed."</p>
+        <div class="source">Sahih al-Bukhari 6491 and Sahih Muslim 131 / 128</div>
+      </blockquote>
+
+      <blockquote>
+        <p>"If My servant intends to do a good deed but does not do it, then write it as one good deed for him."</p>
+        <div class="source">Sahih al-Bukhari 7501</div>
+      </blockquote>
+
+      <p>So if a person sincerely intends to understand the Qur'an, learn Arabic, improve Salah, or seek knowledge for the sake of Allah, and they pass away before completing that journey, we hope that Allah will still give them the full reward because Allah rewards sincerity, intention, and effort.</p>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1. Allah Sees The Striving</h2>
+        <p class="ayah">&#x0648;&#x064E;&#x0623;&#x064E;&#x0646;&#x0652; &#x0644;&#x064E;&#x064A;&#x0652;&#x0633;&#x064E; &#x0644;&#x0650;&#x0644;&#x0652;&#x0625;&#x0650;&#x0646;&#x0633;&#x064E;&#x0627;&#x0646;&#x0650; &#x0625;&#x0650;&#x0644;&#x0651;&#x064E;&#x0627; &#x0645;&#x064E;&#x0627; &#x0633;&#x064E;&#x0639;&#x064E;&#x0649;&#x0670;</p>
+        <p>"And that man will have nothing except what he strives for." (53:39)</p>
+        <p>Allah sees the striving, the effort, and the sincere intention, even before the result comes.</p>
+      </section>
+
+      <section class="card">
+        <h2>2. Arabic Has Special Honor</h2>
+        <p>Allah chose Arabic for the Qur'an out of all languages. That itself shows the importance and honor of Arabic.</p>
+        <p class="ayah">&#x0625;&#x0650;&#x0646;&#x0651;&#x064E;&#x0627; &#x0623;&#x064E;&#x0646;&#x0632;&#x064E;&#x0644;&#x0652;&#x0646;&#x064E;&#x0627;&#x0647;&#x064F; &#x0642;&#x064F;&#x0631;&#x0652;&#x0622;&#x0646;&#x064B;&#x0627; &#x0639;&#x064E;&#x0631;&#x064E;&#x0628;&#x0650;&#x064A;&#x0651;&#x064B;&#x0627; &#x0644;&#x0651;&#x064E;&#x0639;&#x064E;&#x0644;&#x0651;&#x064E;&#x0643;&#x064F;&#x0645;&#x0652; &#x062A;&#x064E;&#x0639;&#x0652;&#x0642;&#x0650;&#x0644;&#x064F;&#x0648;&#x0646;&#x064E;</p>
+        <p>"Indeed, We have sent it down as an Arabic Qur'an so that you may understand." (12:2)</p>
+      </section>
+
+      <section class="card">
+        <h2>3. The Qur'an Came In Clear Arabic</h2>
+        <p class="ayah">&#x0628;&#x0650;&#x0644;&#x0650;&#x0633;&#x064E;&#x0627;&#x0646;&#x064D; &#x0639;&#x064E;&#x0631;&#x064E;&#x0628;&#x0650;&#x064A;&#x0651;&#x064D; &#x0645;&#x064F;&#x0628;&#x0650;&#x064A;&#x0646;&#x064D;</p>
+        <p>"In a clear Arabic language." (26:195)</p>
+        <p class="ayah">&#x0625;&#x0650;&#x0646;&#x0651;&#x064E;&#x0627; &#x062C;&#x064E;&#x0639;&#x064E;&#x0644;&#x0652;&#x0646;&#x064E;&#x0627;&#x0647;&#x064F; &#x0642;&#x064F;&#x0631;&#x0652;&#x0622;&#x0646;&#x064B;&#x0627; &#x0639;&#x064E;&#x0631;&#x064E;&#x0628;&#x0650;&#x064A;&#x0651;&#x064B;&#x0627; &#x0644;&#x0651;&#x064E;&#x0639;&#x064E;&#x0644;&#x0651;&#x064E;&#x0643;&#x064F;&#x0645;&#x0652; &#x062A;&#x064E;&#x0639;&#x0652;&#x0642;&#x0650;&#x0644;&#x064F;&#x0648;&#x0646;&#x064E;</p>
+        <p>"Indeed, We have made it an Arabic Qur'an so that you may understand." (43:3)</p>
+      </section>
+
+      <section class="card">
+        <h2>4. Translation Helps, But Arabic Gives More</h2>
+        <p>We can understand the meaning of the Qur'an through English translations, and that is beneficial. But translation is never exactly the same as the original Arabic.</p>
+        <p>It is like the difference between eating a fruit fresh from the tree and drinking processed juice. The juice gives you something, but the original fruit gives you the full taste and experience.</p>
+        <p>That is why we should all try to learn at least some Arabic.</p>
+      </section>
+    </div>
+
+    <section class="card full">
+      <h2>Why This Matters In Salah</h2>
+      <div class="note">
+        <p>Every day in Salah, the Imam recites Qur'an in Arabic. If we do not understand what is being recited, our mind may wander to other things. But when we understand even a little of what is being said, our Salah becomes deeper, more focused, and more meaningful.</p>
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>So Every Muslim Should Intend To</h2>
+      <div class="note">
+        <ul>
+          <li>Understand the Qur'an.</li>
+          <li>Learn the meanings of what is recited in Salah.</li>
+          <li>Learn at least basic Arabic.</li>
+          <li>Grow closer to Allah through knowledge.</li>
+          <li>Keep track of progress so that learning stays consistent.</li>
+        </ul>
+        <p>Even small steps matter when they are done sincerely for Allah.</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
