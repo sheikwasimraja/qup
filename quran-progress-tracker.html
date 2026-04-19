@@ -104,7 +104,7 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: 1.6fr 180px 180px auto auto auto;
+      grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(140px, 180px)) repeat(3, minmax(110px, auto));
       gap: 12px;
       margin: 12px 0 12px;
       align-items: center;
@@ -158,6 +158,8 @@
       overflow: auto;
       max-height: 70vh;
       border-top: 1px solid var(--border);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
 
     table {
@@ -290,6 +292,14 @@
       font-size: 0.95rem;
     }
 
+    .mobile-table-hint {
+      display: none;
+      margin: 0;
+      padding: 10px 14px 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
     .pager {
       display: flex;
       gap: 10px;
@@ -326,16 +336,86 @@
     }
 
     @media (max-width: 980px) {
-      .toolbar { grid-template-columns: 1fr 1fr; }
+      .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .action-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .action-row button {
+        width: 100%;
+        min-width: 0;
+      }
+      .status-text {
+        grid-column: 1 / -1;
+      }
       .pager { justify-content: stretch; }
       .pager button { flex: 1; }
     }
 
     @media (max-width: 640px) {
-      .wrap { padding: 12px; }
-      .hero { padding: 12px; }
-      .toolbar { grid-template-columns: 1fr; }
-      th, td { max-width: 170px; padding: 6px 7px; }
+      body {
+        font-size: 15px;
+      }
+      .wrap { padding: 10px; }
+      .hero {
+        padding: 12px;
+        border-radius: 18px;
+      }
+      .hero-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .hero-links a {
+        width: 100%;
+        text-align: center;
+        padding: 9px 10px;
+      }
+      .toolbar,
+      .action-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      input, select, button {
+        min-height: 46px;
+        padding: 11px 12px;
+      }
+      .meta {
+        gap: 8px;
+        padding: 0 0 12px;
+      }
+      .pill {
+        width: 100%;
+        justify-content: center;
+      }
+      .mobile-table-hint {
+        display: block;
+      }
+      th, td {
+        max-width: 150px;
+        padding: 6px 7px;
+        font-size: 0.84rem;
+      }
+      thead th {
+        font-size: 0.84rem;
+      }
+      thead tr.filter-row th {
+        top: 38px;
+      }
+      .header-filter {
+        font-size: 0.78rem;
+        padding: 6px;
+      }
+      .reference-link,
+      .learnt-select,
+      .memorise-select {
+        min-width: 0;
+        width: 100%;
+      }
+      .pager {
+        gap: 8px;
+        padding: 10px;
+      }
     }
   </style>
 </head>
@@ -386,6 +466,7 @@
 
     <section class="panel">
       <div id="tableStatus" class="status">Loading data...</div>
+      <p class="mobile-table-hint">Swipe left and right to see all columns.</p>
       <div class="table-scroll" id="tableWrap" hidden>
         <table>
           <thead>
