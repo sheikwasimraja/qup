@@ -834,11 +834,44 @@
       return '<button class="reference-link" type="button" data-sura="' + safeSura + '" data-verse="' + safeVerse + '">Open all references</button>';
     }
 
+    function isLikelyMobileBrowser() {
+      const userAgent = navigator.userAgent || '';
+      const mobilePattern = /android|iphone|ipad|ipod|mobile|opera mini|iemobile/i;
+      if (mobilePattern.test(userAgent)) {
+        return true;
+      }
+      return window.matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+    }
+
     function openAllReferences(sura, verse) {
       const selectedReferenceIds = loadSelectedReferenceIds();
 
       if (!selectedReferenceIds.length) {
         saveStatus.textContent = 'No reference links are selected. Open Reference Settings to choose which sources to use.';
+        return;
+      }
+
+      if (!isLikelyMobileBrowser()) {
+        const queryText = encodeURIComponent('quran tafsir ' + sura + ':' + verse);
+        const selectedConfigs = referenceConfigs.filter((config) => selectedReferenceIds.includes(config.id));
+        const urls = selectedConfigs.map((config) => config.buildUrl({ sura, verse, queryText }));
+
+        [...new Set(urls)].forEach((url) => {
+          const referenceWindow = window.open(url, '_blank');
+          if (referenceWindow) {
+            openedReferenceWindows.push(referenceWindow);
+          }
+        });
+
+        openedReferenceWindows = openedReferenceWindows.filter((referenceWindow) => {
+          return referenceWindow && !referenceWindow.closed;
+        });
+
+        if (openedReferenceWindows.length) {
+          saveStatus.textContent = `Opened ${openedReferenceWindows.length} reference tab${openedReferenceWindows.length === 1 ? '' : 's'} for ${sura}:${verse}.`;
+        } else {
+          saveStatus.textContent = 'Your browser blocked the reference tabs. Allow pop-ups for this page and try again.';
+        }
         return;
       }
 
@@ -853,7 +886,7 @@
       });
 
       if (openedReferenceWindows.length) {
-        saveStatus.textContent = `Opened the reference hub for ${sura}:${verse}.`;
+        saveStatus.textContent = `Opened the mobile reference hub for ${sura}:${verse}.`;
       } else {
         saveStatus.textContent = 'Your browser blocked the reference hub. Allow pop-ups for this page and try again.';
       }
