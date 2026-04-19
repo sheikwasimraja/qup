@@ -102,14 +102,6 @@
       transform: translateY(1px);
     }
 
-    .toolbar {
-      display: grid;
-      grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(140px, 180px)) repeat(3, minmax(110px, auto));
-      gap: 12px;
-      margin: 12px 0 12px;
-      align-items: center;
-    }
-
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -148,10 +140,38 @@
     .meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
       padding: 0 4px 16px;
       color: var(--muted);
       font-size: 0.95rem;
+      align-items: center;
+    }
+
+    .meta-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .meta-control select {
+      width: auto;
+      min-width: 120px;
+      padding: 8px 10px;
+      border-radius: 10px;
+    }
+
+    .meta-actions {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .meta-actions button {
+      width: auto;
+      min-width: 110px;
+      padding: 8px 12px;
     }
 
     .table-scroll {
@@ -336,7 +356,6 @@
     }
 
     @media (max-width: 980px) {
-      .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .action-row {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -371,7 +390,6 @@
         text-align: center;
         padding: 9px 10px;
       }
-      .toolbar,
       .action-row {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -383,6 +401,24 @@
       .meta {
         gap: 8px;
         padding: 0 0 12px;
+      }
+      .meta-control {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .meta-control select {
+        width: 100%;
+        min-width: 0;
+      }
+      .meta-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .meta-actions button {
+        width: 100%;
+        min-width: 0;
       }
       .pill {
         width: 100%;
@@ -434,20 +470,6 @@
       </div>
     </section>
 
-    <div class="toolbar">
-      <input id="searchInput" type="text" placeholder="Search across all columns..." />
-      <select id="rowsPerPage">
-        <option value="25">25 rows</option>
-        <option value="50" selected>50 rows</option>
-        <option value="100">100 rows</option>
-        <option value="250">250 rows</option>
-      </select>
-      <select id="columnFilter"></select>
-      <button id="prevBtn" class="secondary" type="button">Previous</button>
-      <button id="nextBtn" class="secondary" type="button">Next</button>
-      <button id="resetBtn" type="button">Reset</button>
-    </div>
-
     <div class="action-row">
       <button id="randomNotLearntBtn" class="secondary" type="button">Random Review Verse</button>
       <button id="todaysReadBtn" class="secondary" type="button">Today's Progress</button>
@@ -458,6 +480,20 @@
     </div>
 
     <div class="meta">
+      <label class="meta-control" for="rowsPerPage">
+        <span>Rows</span>
+        <select id="rowsPerPage">
+          <option value="25">25 rows</option>
+          <option value="50" selected>50 rows</option>
+          <option value="100">100 rows</option>
+          <option value="250">250 rows</option>
+        </select>
+      </label>
+      <div class="meta-actions">
+        <button id="prevBtn" class="secondary" type="button">Previous</button>
+        <button id="nextBtn" class="secondary" type="button">Next</button>
+        <button id="resetBtn" type="button">Reset</button>
+      </div>
       <span class="pill" id="recordCount">Records: 0</span>
       <span class="pill" id="visibleCount">Visible: 0</span>
       <span class="pill" id="pageInfo">Page 1 of 1</span>
@@ -547,9 +583,7 @@
 
     let orderedColumns = loadVisibleColumns();
 
-    const searchInput = document.getElementById('searchInput');
     const rowsPerPageSelect = document.getElementById('rowsPerPage');
-    const columnFilter = document.getElementById('columnFilter');
     const tableHead = document.getElementById('tableHead');
     const tableFilterRow = document.getElementById('tableFilterRow');
     const tableBody = document.getElementById('tableBody');
@@ -929,21 +963,6 @@
         : 'No open reference tabs from this page were found.';
     }
 
-    function buildColumnFilter() {
-      columnFilter.innerHTML = '';
-      const allOption = document.createElement('option');
-      allOption.value = '__all__';
-      allOption.textContent = 'All columns';
-      columnFilter.appendChild(allOption);
-
-      orderedColumns.forEach((column) => {
-        const option = document.createElement('option');
-        option.value = column;
-        option.textContent = column;
-        columnFilter.appendChild(option);
-      });
-    }
-
     function buildColumnFilterInputs() {
       tableFilterRow.innerHTML = '';
       columnFilterInputs.clear();
@@ -1006,8 +1025,6 @@
     }
 
     function applyFilter() {
-      const searchTerm = searchInput.value.trim().toLowerCase();
-      const selectedColumn = columnFilter.value;
       const activeColumnFilters = getActiveColumnFilters();
 
       filteredRows = rows.filter((row) => {
@@ -1015,14 +1032,6 @@
         if (showEditedRowsOnly && !pendingRowChanges.has(rowKey)) {
           return false;
         }
-
-        const matchesSearch = !searchTerm || (
-          selectedColumn && selectedColumn !== '__all__'
-            ? formatCellValue(selectedColumn, row[selectedColumn]).toLowerCase().includes(searchTerm)
-            : orderedColumns.some((column) => formatCellValue(column, row[column]).toLowerCase().includes(searchTerm))
-        );
-
-        if (!matchesSearch) return false;
 
         return activeColumnFilters.every(({ column, value }) =>
           column === 'Learnt' || column === 'Memorise'
@@ -1121,8 +1130,6 @@
       }
     }));
 
-    searchInput.addEventListener('input', applyFilter);
-    columnFilter.addEventListener('change', applyFilter);
     rowsPerPageSelect.addEventListener('change', renderTable);
     tableBody.addEventListener('click', (event) => {
       const linkButton = event.target.closest('.reference-link');
@@ -1174,8 +1181,6 @@
 
       const randomRow = candidates[Math.floor(Math.random() * candidates.length)];
       focusedRowKey = getRowKey(randomRow);
-      searchInput.value = '';
-      columnFilter.value = '__all__';
       columnFilterInputs.forEach((input) => {
         input.value = '';
       });
@@ -1197,8 +1202,6 @@
       }
 
       focusedRowKey = null;
-      searchInput.value = '';
-      columnFilter.value = '__all__';
       columnFilterInputs.forEach((input) => {
         input.value = '';
       });
@@ -1248,8 +1251,6 @@
       applyFilter();
     });
     resetBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      columnFilter.value = '__all__';
       rowsPerPageSelect.value = '50';
       showEditedRowsOnly = false;
       columnFilterInputs.forEach((input) => {
@@ -1263,7 +1264,6 @@
 
     loadPendingChanges();
     buildHeader();
-    buildColumnFilter();
     buildColumnFilterInputs();
     renderTable();
     })();
