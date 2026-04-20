@@ -510,6 +510,7 @@
 
     <div class="action-row">
       <button id="randomNotLearntBtn" class="secondary" type="button">Random Review Verse</button>
+      <button id="reviewContextBtn" class="secondary" type="button" hidden>Show Context</button>
       <button id="todaysReadBtn" class="secondary" type="button">Today's Progress</button>
       <button id="closeReferencesBtn" class="secondary" type="button">Close Reference Tabs</button>
       <button id="saveJsonBtn" type="button">Save Progress</button>
@@ -635,6 +636,7 @@
     const pageInfo = document.getElementById('pageInfo');
     const editedCount = document.getElementById('editedCount');
     const randomNotLearntBtn = document.getElementById('randomNotLearntBtn');
+    const reviewContextBtn = document.getElementById('reviewContextBtn');
     const todaysReadBtn = document.getElementById('todaysReadBtn');
     const closeReferencesBtn = document.getElementById('closeReferencesBtn');
     const saveJsonBtn = document.getElementById('saveJsonBtn');
@@ -650,6 +652,7 @@
     let currentPage = 1;
     let filteredRows = rows.slice();
     let focusedRowKey = null;
+    let reviewContextRowKey = null;
     let showEditedRowsOnly = false;
     const columnFilterInputs = new Map();
     const rowIdField = rows.some((row) => row && row['S.no'] !== undefined) ? 'S.no' : null;
@@ -824,6 +827,11 @@
 
     function getUpdatedRowCount() {
       return pendingRowChanges.size;
+    }
+
+    function updateReviewContextButton() {
+      reviewContextBtn.hidden = !reviewContextRowKey;
+      reviewContextBtn.disabled = !reviewContextRowKey;
     }
 
     function replaceRows(nextRows) {
@@ -1154,6 +1162,8 @@
     }
 
     function applyFilter() {
+      reviewContextRowKey = null;
+      updateReviewContextButton();
       const activeColumnFilters = getActiveColumnFilters();
 
       filteredRows = rows.filter((row) => {
@@ -1310,6 +1320,8 @@
 
       const randomRow = candidates[Math.floor(Math.random() * candidates.length)];
       focusedRowKey = getRowKey(randomRow);
+      reviewContextRowKey = focusedRowKey;
+      updateReviewContextButton();
       columnFilterInputs.forEach((input) => {
         input.value = '';
       });
@@ -1317,6 +1329,30 @@
       currentPage = 1;
       renderTable();
       saveStatus.textContent = `Showing random not learnt row: ${formatCellValue('VerseNum', randomRow.VerseNum || '') || 'selected row'}. Use Reset to return to all rows.`;
+      const focusedRow = tableBody.querySelector('.focus-row');
+      if (focusedRow) {
+        focusedRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    });
+    reviewContextBtn.addEventListener('click', () => {
+      if (!reviewContextRowKey) {
+        saveStatus.textContent = 'Choose a random review verse first.';
+        return;
+      }
+
+      const targetIndex = rows.findIndex((row, index) => getRowKey(row, index) === reviewContextRowKey);
+      if (targetIndex === -1) {
+        saveStatus.textContent = 'Context is not available for that verse right now.';
+        return;
+      }
+
+      const startIndex = Math.max(0, targetIndex - 2);
+      const endIndex = Math.min(rows.length, targetIndex + 3);
+      filteredRows = rows.slice(startIndex, endIndex);
+      focusedRowKey = reviewContextRowKey;
+      currentPage = 1;
+      renderTable();
+      saveStatus.textContent = `Showing context for ${formatCellValue('VerseNum', rows[targetIndex].VerseNum || '') || 'the selected verse'} with up to 2 verses before and 2 verses after.`;
       const focusedRow = tableBody.querySelector('.focus-row');
       if (focusedRow) {
         focusedRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -1331,6 +1367,8 @@
       }
 
       focusedRowKey = null;
+      reviewContextRowKey = null;
+      updateReviewContextButton();
       columnFilterInputs.forEach((input) => {
         input.value = '';
       });
@@ -1381,6 +1419,8 @@
       pendingRowChanges.clear();
       localStorage.removeItem(pendingChangesStorageKey);
       showEditedRowsOnly = false;
+      reviewContextRowKey = null;
+      updateReviewContextButton();
       rows.forEach((row, index) => {
         row.Learnt = originalRowsSnapshot[index] ? originalRowsSnapshot[index].Learnt : row.Learnt;
         row.Memorise = originalRowsSnapshot[index] ? originalRowsSnapshot[index].Memorise : row.Memorise;
@@ -1392,6 +1432,8 @@
     resetBtn.addEventListener('click', () => {
       rowsPerPageSelect.value = '50';
       showEditedRowsOnly = false;
+      reviewContextRowKey = null;
+      updateReviewContextButton();
       columnFilterInputs.forEach((input) => {
         input.value = '';
       });
@@ -1402,6 +1444,7 @@
     });
 
     loadPendingChanges();
+    updateReviewContextButton();
     buildHeader();
     buildColumnFilterInputs();
     renderTable();

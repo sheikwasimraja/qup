@@ -142,6 +142,33 @@
     .section-title {
       margin-bottom: 12px;
     }
+
+    .tool-links {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .tool-link {
+      display: block;
+      text-decoration: none;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .tool-link strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--accent-2);
+    }
+
+    .tool-link span {
+      color: var(--muted);
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
@@ -210,6 +237,21 @@
           <li>Choose which columns should be visible.</li>
           <li>Save the settings and refresh the tracker if it is already open.</li>
         </ol>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">5. Helpful Arabic Learning Tools</h2>
+        <p class="subtext">These playlists can help with extra Arabic study alongside your Quran progress routine.</p>
+        <div class="tool-links">
+          <a class="tool-link" href="https://www.youtube.com/playlist?list=PLC2ruw0EUW8BwpE-seNS6i-_zuNq-jFc4" target="_blank" rel="noopener noreferrer">
+            <strong>Arabic Learning Playlist 1</strong>
+            <span>YouTube lessons for Arabic learning, practice, and review.</span>
+          </a>
+          <a class="tool-link" href="https://www.youtube.com/playlist?list=PLC2ruw0EUW8DBrpGsM1GpRM1Ib9_E2AqD" target="_blank" rel="noopener noreferrer">
+            <strong>Arabic Learning Playlist 2</strong>
+            <span>An additional YouTube playlist with more Arabic lessons and revision material.</span>
+          </a>
+        </div>
       </section>
     </div>
 
