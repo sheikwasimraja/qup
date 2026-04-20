@@ -4,10 +4,12 @@
   const DATA_KEY = 'rows';
   const META_KEY = 'seed-version';
   const DEFAULT_PENDING_KEY = 'quran-progress-pending-changes';
+  const LOCAL_SNAPSHOT_KEY = 'quran-progress-saved-snapshot-v1';
   const seedRows = Array.isArray(window.QURAN_PROGRESS_SEED) ? window.QURAN_PROGRESS_SEED : [];
   const seedVersion = window.QURAN_PROGRESS_SEED_VERSION || `seed-${seedRows.length}`;
 
   let dbPromise;
+  let lastPersistenceMode = 'indexeddb';
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -120,6 +122,37 @@
     return dbPromise;
   }
 
+  function readLocalSnapshot() {
+    try {
+      const raw = window.localStorage.getItem(LOCAL_SNAPSHOT_KEY);
+      if (!raw) {
+        return null;
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.rows)) {
+        return null;
+      }
+
+      const normalized = normalizeRows(clone(parsed.rows));
+      return {
+        rows: normalized.rows,
+        seedVersion: parsed.seedVersion || null,
+        changed: normalized.changed
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writeLocalSnapshot(rows) {
+    window.localStorage.setItem(LOCAL_SNAPSHOT_KEY, JSON.stringify({
+      seedVersion,
+      savedAt: new Date().toISOString(),
+      rows: clone(rows)
+    }));
+  }
+
   async function readValue(key) {
     const db = await openDb();
     return new Promise((resolve, reject) => {
@@ -145,31 +178,101 @@
   }
 
   async function ensureInitialized() {
-    const [storedRows, storedSeedVersion] = await Promise.all([
-      readValue(DATA_KEY),
-      readValue(META_KEY)
-    ]);
+    const localSnapshot = readLocalSnapshot();
+    let storedRows;
+    let storedSeedVersion;
+    let dbAvailable = true;
 
-    if (!Array.isArray(storedRows) || !storedRows.length) {
-      const normalizedSeed = normalizeRows(clone(seedRows));
-      const initialRows = normalizedSeed.rows;
-      await Promise.all([
-        writeValue(DATA_KEY, initialRows),
-        writeValue(META_KEY, seedVersion)
+    try {
+      [storedRows, storedSeedVersion] = await Promise.all([
+        readValue(DATA_KEY),
+        readValue(META_KEY)
       ]);
+    } catch (error) {
+      dbAvailable = false;
+    }
+
+    if (Array.isArray(storedRows) && storedRows.length) {
+      const normalizedStored = normalizeRows(clone(storedRows));
+
+      if (dbAvailable && normalizedStored.changed) {
+        await writeValue(DATA_KEY, normalizedStored.rows);
+      }
+
+      if (dbAvailable && storedSeedVersion !== seedVersion) {
+        await writeValue(META_KEY, seedVersion);
+      }
+
+      try {
+        writeLocalSnapshot(normalizedStored.rows);
+      } catch (error) {
+        // Keep IndexedDB as the source of truth when local snapshot mirroring fails.
+      }
+
+      lastPersistenceMode = dbAvailable ? 'indexeddb' : 'local';
+      return normalizedStored.rows;
+    }
+
+    if (localSnapshot && Array.isArray(localSnapshot.rows) && localSnapshot.rows.length) {
+      if (dbAvailable) {
+        try {
+          await Promise.all([
+            writeValue(DATA_KEY, localSnapshot.rows),
+            writeValue(META_KEY, localSnapshot.seedVersion || seedVersion)
+          ]);
+          lastPersistenceMode = 'indexeddb';
+        } catch (error) {
+          lastPersistenceMode = 'local';
+        }
+      } else {
+        lastPersistenceMode = 'local';
+      }
+
+      if (localSnapshot.changed) {
+        try {
+          writeLocalSnapshot(localSnapshot.rows);
+        } catch (error) {
+          // Ignore local snapshot rewrite failures.
+        }
+      }
+
+      return localSnapshot.rows;
+    }
+
+    const normalizedSeed = normalizeRows(clone(seedRows));
+    const initialRows = normalizedSeed.rows;
+
+    let localSaved = false;
+    try {
+      writeLocalSnapshot(initialRows);
+      localSaved = true;
+    } catch (error) {
+      localSaved = false;
+    }
+
+    if (dbAvailable) {
+      try {
+        await Promise.all([
+          writeValue(DATA_KEY, initialRows),
+          writeValue(META_KEY, seedVersion)
+        ]);
+        lastPersistenceMode = 'indexeddb';
+        return initialRows;
+      } catch (error) {
+        if (localSaved) {
+          lastPersistenceMode = 'local';
+          return initialRows;
+        }
+        throw error;
+      }
+    }
+
+    if (localSaved) {
+      lastPersistenceMode = 'local';
       return initialRows;
     }
 
-    const normalizedStored = normalizeRows(clone(storedRows));
-    if (normalizedStored.changed) {
-      await writeValue(DATA_KEY, normalizedStored.rows);
-    }
-
-    if (storedSeedVersion !== seedVersion) {
-      await writeValue(META_KEY, seedVersion);
-    }
-
-    return normalizedStored.rows;
+    throw new Error('Browser storage is not available.');
   }
 
   function applyPendingChanges(rows, pendingKey = DEFAULT_PENDING_KEY) {
@@ -224,10 +327,29 @@
     }
 
     const clonedRows = normalizeRows(clone(rows)).rows;
-    await Promise.all([
-      writeValue(DATA_KEY, clonedRows),
-      writeValue(META_KEY, seedVersion)
-    ]);
+    let localError = null;
+    let dbError = null;
+
+    try {
+      writeLocalSnapshot(clonedRows);
+    } catch (error) {
+      localError = error;
+    }
+
+    try {
+      await Promise.all([
+        writeValue(DATA_KEY, clonedRows),
+        writeValue(META_KEY, seedVersion)
+      ]);
+    } catch (error) {
+      dbError = error;
+    }
+
+    if (dbError && localError) {
+      throw dbError;
+    }
+
+    lastPersistenceMode = dbError ? 'local' : 'indexeddb';
     return clonedRows;
   }
 
@@ -263,10 +385,16 @@
 
   async function resetSavedRowsToSeed() {
     const clonedRows = normalizeRows(clone(seedRows)).rows;
-    await Promise.all([
-      writeValue(DATA_KEY, clonedRows),
-      writeValue(META_KEY, seedVersion)
-    ]);
+    writeLocalSnapshot(clonedRows);
+    try {
+      await Promise.all([
+        writeValue(DATA_KEY, clonedRows),
+        writeValue(META_KEY, seedVersion)
+      ]);
+      lastPersistenceMode = 'indexeddb';
+    } catch (error) {
+      lastPersistenceMode = 'local';
+    }
     window.localStorage.removeItem(DEFAULT_PENDING_KEY);
     return clonedRows;
   }
@@ -292,6 +420,7 @@
     clearPendingChanges,
     createBackupPayload,
     getColumnList,
+    getLastPersistenceMode: () => lastPersistenceMode,
     getSavedRows,
     getWorkingRows,
     importBackupPayload,

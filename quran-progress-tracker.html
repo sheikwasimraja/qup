@@ -848,15 +848,20 @@
 
       try {
         const savedRows = await QuranProgressStore.saveRows(rows);
+        const persistenceMode = typeof QuranProgressStore.getLastPersistenceMode === 'function'
+          ? QuranProgressStore.getLastPersistenceMode()
+          : 'indexeddb';
         originalRowsSnapshot = JSON.parse(JSON.stringify(savedRows));
         pendingRowChanges.clear();
         QuranProgressStore.clearPendingChanges(pendingChangesStorageKey);
         showEditedRowsOnly = false;
         focusedRowKey = null;
         applyFilter();
-        saveStatus.textContent = 'Progress saved in this browser.';
+        saveStatus.textContent = persistenceMode === 'local'
+          ? 'Progress saved on this device using browser storage fallback.'
+          : 'Progress saved in this browser.';
       } catch (error) {
-        saveStatus.textContent = 'Save failed in this browser. Please try again.';
+        saveStatus.textContent = 'Save failed on this device. Please try Download Backup.';
       }
     }
 
