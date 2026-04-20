@@ -310,15 +310,57 @@
       background: #f4fbfa;
     }
 
-    .learnt-select,
-    .memorise-select {
-      min-width: 84px;
-      padding: 6px 8px;
-      border-radius: 10px;
+    .progress-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+      min-height: 38px;
+      padding: 7px 10px;
+      border-radius: 12px;
       border: 1px solid var(--border);
       background: #fff;
+      color: var(--accent-2);
       font: inherit;
-      font-size: 0.84rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .progress-toggle::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      border: 1.5px solid currentColor;
+      background: #fff;
+      flex: 0 0 auto;
+    }
+
+    .progress-toggle.is-on {
+      background: rgba(15,118,110,0.1);
+      border-color: rgba(15,118,110,0.35);
+      color: var(--accent);
+    }
+
+    .progress-toggle.is-on::before {
+      content: "✓";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .progress-toggle.is-no {
+      background: rgba(217,119,6,0.08);
+      border-color: rgba(217,119,6,0.28);
+      color: #b45309;
     }
 
     .action-row {
@@ -602,7 +644,7 @@
         gap: 8px;
       }
       .mobile-card-actions button,
-      .mobile-card-grid select,
+      .mobile-card-grid .progress-toggle,
       .mobile-filter-grid input,
       .mobile-filter-grid select {
         min-height: 38px;
@@ -669,8 +711,7 @@
         padding: 6px;
       }
       .reference-link,
-      .learnt-select,
-      .memorise-select {
+      .progress-toggle {
         min-width: 0;
         width: 100%;
       }
@@ -1207,28 +1248,52 @@
       updateEditedCountPill();
     }
 
+    function renderProgressToggle(field, row, label) {
+      const currentValue = row[field] === null || row[field] === undefined ? '' : String(row[field]);
+      const normalized = currentValue.trim().toLowerCase();
+      const classNames = ['progress-toggle'];
+      let buttonLabel = label;
+
+      if (normalized === 'yes') {
+        classNames.push('is-on');
+        buttonLabel = `${label}: Yes`;
+      } else if (normalized === 'no') {
+        classNames.push('is-no');
+        buttonLabel = `${label}: No`;
+      } else {
+        buttonLabel = `Mark ${label}`;
+      }
+
+      return `<button class="${classNames.join(' ')}" type="button" data-row-key="${getRowKey(row)}" data-field="${field}" aria-pressed="${normalized === 'yes' ? 'true' : 'false'}">${buttonLabel}</button>`;
+    }
+
     function renderLearntEditor(row) {
-      const currentValue = row.Learnt === null || row.Learnt === undefined ? '' : String(row.Learnt);
-      const safeCurrentValue = currentValue.replace(/"/g, '&quot;');
-      return `
-        <select class="learnt-select" data-row-key="${getRowKey(row)}">
-          <option value=""${safeCurrentValue === '' ? ' selected' : ''}>Blank</option>
-          <option value="Yes"${safeCurrentValue === 'Yes' ? ' selected' : ''}>Yes</option>
-          <option value="No"${safeCurrentValue === 'No' ? ' selected' : ''}>No</option>
-        </select>
-      `;
+      return renderProgressToggle('Learnt', row, 'Learnt');
     }
 
     function renderMemoriseEditor(row) {
-      const currentValue = row.Memorise === null || row.Memorise === undefined ? '' : String(row.Memorise);
-      const safeCurrentValue = currentValue.replace(/"/g, '&quot;');
-      return `
-        <select class="memorise-select" data-row-key="${getRowKey(row)}">
-          <option value=""${safeCurrentValue === '' ? ' selected' : ''}>Blank</option>
-          <option value="Yes"${safeCurrentValue === 'Yes' ? ' selected' : ''}>Yes</option>
-          <option value="No"${safeCurrentValue === 'No' ? ' selected' : ''}>No</option>
-        </select>
-      `;
+      return renderProgressToggle('Memorise', row, 'Memorise');
+    }
+
+    function updateProgressValue(rowKey, field, nextValue) {
+      const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
+      if (!row) return false;
+
+      row[field] = nextValue || null;
+
+      if (field === 'Learnt' && nextValue === 'Yes') {
+        row['Date Learnt'] = getTodayLearntTimestamp();
+        setPendingRowChange(rowKey, 'Date Learnt', row['Date Learnt']);
+      }
+
+      if (field === 'Memorise' && nextValue === 'Yes') {
+        row['Date Memorised'] = getTodayMemorisedTimestamp();
+        setPendingRowChange(rowKey, 'Date Memorised', row['Date Memorised']);
+      }
+
+      setPendingRowChange(rowKey, field, row[field]);
+      applyFilter();
+      return true;
     }
 
     function isMobileCardsMode() {
@@ -1503,12 +1568,12 @@
           <p class="mobile-card-meta">${formatCellValue('Date Learnt', row['Date Learnt']) ? `Learnt: ${formatCellValue('Date Learnt', row['Date Learnt'])}` : 'Learnt date: blank'}${formatCellValue('Date Memorised', row['Date Memorised']) ? ` • Memorised: ${formatCellValue('Date Memorised', row['Date Memorised'])}` : ''}</p>
           <div class="mobile-card-grid">
             <div class="mobile-card-field">
-              <label for="mobile-learnt-${rowKey}">Learnt</label>
-              ${renderLearntEditor(row).replace('class="learnt-select"', 'class="learnt-select mobile-card-select" id="mobile-learnt-' + rowKey + '"')}
+              <label>Learnt</label>
+              ${renderLearntEditor(row)}
             </div>
             <div class="mobile-card-field">
-              <label for="mobile-memorise-${rowKey}">Memorise</label>
-              ${renderMemoriseEditor(row).replace('class="memorise-select"', 'class="memorise-select mobile-card-select" id="mobile-memorise-' + rowKey + '"')}
+              <label>Memorise</label>
+              ${renderMemoriseEditor(row)}
             </div>
           </div>
           <div class="mobile-card-actions">
@@ -1529,7 +1594,6 @@
       });
 
       mobileCardsList.appendChild(fragment);
-    }
     }
 
     function updateEditedCountPill() {
@@ -1650,43 +1714,24 @@
       if (!linkButton) return;
       openAllReferences(linkButton.dataset.sura, linkButton.dataset.verse);
     });
-    tableBody.addEventListener('change', (event) => {
-      const learntSelect = event.target.closest('.learnt-select');
-      if (learntSelect) {
-        const rowKey = learntSelect.dataset.rowKey;
-        const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
-        if (!row) return;
-
-        row.Learnt = learntSelect.value || null;
-        if (learntSelect.value === 'Yes') {
-          row['Date Learnt'] = getTodayLearntTimestamp();
-        }
-        setPendingRowChange(rowKey, 'Learnt', row.Learnt);
-        if (learntSelect.value === 'Yes') {
-          setPendingRowChange(rowKey, 'Date Learnt', row['Date Learnt']);
-        }
-        applyFilter();
+    tableBody.addEventListener('click', (event) => {
+      const progressToggle = event.target.closest('.progress-toggle');
+      if (!progressToggle) return;
+      const rowKey = progressToggle.dataset.rowKey;
+      const field = progressToggle.dataset.field;
+      const isOn = progressToggle.getAttribute('aria-pressed') === 'true';
+      updateProgressValue(rowKey, field, isOn ? '' : 'Yes');
+    });
+    mobileCardsList.addEventListener('click', (event) => {
+      const progressToggle = event.target.closest('.progress-toggle');
+      if (progressToggle) {
+        const rowKey = progressToggle.dataset.rowKey;
+        const field = progressToggle.dataset.field;
+        const isOn = progressToggle.getAttribute('aria-pressed') === 'true';
+        updateProgressValue(rowKey, field, isOn ? '' : 'Yes');
         return;
       }
 
-      const memoriseSelect = event.target.closest('.memorise-select');
-      if (!memoriseSelect) return;
-
-      const rowKey = memoriseSelect.dataset.rowKey;
-      const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
-      if (!row) return;
-
-      row.Memorise = memoriseSelect.value || null;
-      if (memoriseSelect.value === 'Yes') {
-        row['Date Memorised'] = getTodayMemorisedTimestamp();
-      }
-      setPendingRowChange(rowKey, 'Memorise', row.Memorise);
-      if (memoriseSelect.value === 'Yes') {
-        setPendingRowChange(rowKey, 'Date Memorised', row['Date Memorised']);
-      }
-      applyFilter();
-    });
-    mobileCardsList.addEventListener('click', (event) => {
       const linkButton = event.target.closest('.reference-link');
       if (linkButton) {
         openAllReferences(linkButton.dataset.sura, linkButton.dataset.verse);
@@ -1699,42 +1744,6 @@
       if (!card) return;
       card.classList.toggle('is-expanded');
       toggleButton.textContent = card.classList.contains('is-expanded') ? 'Show Less' : 'Show More';
-    });
-    mobileCardsList.addEventListener('change', (event) => {
-      const learntSelect = event.target.closest('.learnt-select');
-      if (learntSelect) {
-        const rowKey = learntSelect.dataset.rowKey;
-        const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
-        if (!row) return;
-
-        row.Learnt = learntSelect.value || null;
-        if (learntSelect.value === 'Yes') {
-          row['Date Learnt'] = getTodayLearntTimestamp();
-        }
-        setPendingRowChange(rowKey, 'Learnt', row.Learnt);
-        if (learntSelect.value === 'Yes') {
-          setPendingRowChange(rowKey, 'Date Learnt', row['Date Learnt']);
-        }
-        applyFilter();
-        return;
-      }
-
-      const memoriseSelect = event.target.closest('.memorise-select');
-      if (!memoriseSelect) return;
-
-      const rowKey = memoriseSelect.dataset.rowKey;
-      const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
-      if (!row) return;
-
-      row.Memorise = memoriseSelect.value || null;
-      if (memoriseSelect.value === 'Yes') {
-        row['Date Memorised'] = getTodayMemorisedTimestamp();
-      }
-      setPendingRowChange(rowKey, 'Memorise', row.Memorise);
-      if (memoriseSelect.value === 'Yes') {
-        setPendingRowChange(rowKey, 'Date Memorised', row['Date Memorised']);
-      }
-      applyFilter();
     });
     randomNotLearntBtn.addEventListener('click', () => {
       const candidates = rows.filter((row) => !isLearntComplete(row));
