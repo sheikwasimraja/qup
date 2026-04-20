@@ -224,19 +224,21 @@
           <li><code>quran-progress-trends.html</code> shows daily and monthly trends.</li>
           <li><code>quran-progress-motivation.html</code> gives space for your purpose, reminders, and encouragement.</li>
           <li><code>quran-reference-settings.html</code> controls reference links and visible columns.</li>
-          <li>Your verse progress is saved in your browser on your own device.</li>
+          <li>Desktop shows the full table, while smaller screens switch to a mobile cards view for easier reading and tapping.</li>
+          <li>Your verse progress is saved on your own device using browser storage, with a fallback when some mobile browsers are more limited.</li>
         </ul>
       </section>
 
       <section class="card">
         <h2 class="section-title">2. Daily Use</h2>
         <ol>
-          <li>Search, filter, or use the header filters under each column.</li>
-          <li>Update the <code>LEARNT</code> and <code>MEMORISE</code> dropdowns row by row.</li>
-          <li>When you change <code>LEARNT</code> to <code>Yes</code>, the tracker fills <code>DATE LEARNT</code> automatically.</li>
-          <li>When you change <code>MEMORISE</code> to <code>Yes</code>, the tracker fills <code>DATE MEMORISED</code> automatically.</li>
-          <li>Click <code>Save Progress</code> to save your current work in the browser.</li>
-          <li>Click <code>Download Backup</code> once in a while to keep a JSON copy you can restore later if browser data is cleared.</li>
+          <li>On desktop, search, filter, or use the header filters under each column. On mobile, use the card filters at the top of the cards view.</li>
+          <li>Use the <code>LEARNT</code> and <code>MEMORISE</code> toggle buttons row by row or card by card. One tap marks <code>Yes</code>; tapping again clears it.</li>
+          <li>When you mark <code>LEARNT</code> as <code>Yes</code>, the tracker fills <code>DATE LEARNT</code> automatically.</li>
+          <li>When you mark <code>MEMORISE</code> as <code>Yes</code>, the tracker fills <code>DATE MEMORISED</code> automatically.</li>
+          <li>Click <code>Save Progress</code> to save your current work on the device you are using.</li>
+          <li>Click <code>Download Backup</code> from time to time to keep a JSON copy, and use <code>Restore Backup</code> if you need to bring that saved copy back.</li>
+          <li>If you want to discard unsaved edits from your current session, use <code>Reset Unsaved Changes</code>.</li>
         </ol>
       </section>
 
@@ -244,6 +246,7 @@
         <h2 class="section-title">3. Reviewing And Staying Motivated</h2>
         <ol>
           <li>Use <code>Random Review Verse</code> when you want a quick revision prompt.</li>
+          <li>Use <code>Show Context</code> after a random review verse when you want to open nearby verses for more context.</li>
           <li>Use <code>Today's Progress</code> to see what you completed on the current day.</li>
           <li>Open the motivation page whenever you want to revisit your intention and reminders.</li>
           <li>Check the summary and trends pages to see how small efforts are adding up over time.</li>
@@ -279,21 +282,26 @@
     <section class="card full">
       <h2 class="section-title">Features Available</h2>
       <ul>
-        <li>Main table with search, paging, and column-wise filters.</li>
+        <li>Desktop table with search, paging, and column-wise filters.</li>
+        <li>Mobile cards view with compact filters and card-by-card progress controls.</li>
+        <li>One-tap <code>LEARNT</code> and <code>MEMORISE</code> toggle buttons instead of dropdowns.</li>
         <li><code>Random Review Verse</code> to pick a random verse not yet marked as learnt.</li>
+        <li><code>Show Context</code> to open the surrounding verses for a review selection.</li>
         <li><code>Today's Progress</code> to show rows learnt today.</li>
         <li><code>Updated verses</code> to show only the rows changed in your current session.</li>
         <li>A motivation page for intention-setting, reminders, and encouragement.</li>
         <li><code>Open all references</code> to open the selected reference websites for a verse.</li>
+        <li><code>Restore Backup</code> to load a previously downloaded JSON backup.</li>
+        <li><code>Reset Unsaved Changes</code> to clear edits that have not been saved yet.</li>
         <li><code>Close Reference Tabs</code> to close reference tabs opened by the tracker when the browser allows it.</li>
-        <li>Summary and trend pages that reflect your current browser-saved progress.</li>
+        <li>Summary and trend pages that reflect your current saved progress on that device.</li>
       </ul>
     </section>
 
     <section class="card full">
       <h2 class="section-title">How Saving Works</h2>
       <div class="note">
-        Your progress is saved in your browser on your own device. If another person opens the same site in their own browser, they will keep their own separate progress. Clearing browser storage will remove saved progress for that browser, so it is a good idea to download a backup file from time to time.
+        Your progress is saved on your own device in browser storage. If another person opens the same site in their own browser, they will keep their own separate progress. Some mobile browsers may use a browser storage fallback behind the scenes, so it is still a good idea to download a backup file from time to time in case browser storage is cleared or limited.
       </div>
     </section>
 
@@ -313,8 +321,10 @@
         <li>If the tracker looks old, refresh the page once.</li>
         <li>If charts do not match the tracker, save your progress and refresh the chart page.</li>
         <li>If settings do not appear, save them and then refresh the tracker.</li>
+        <li>If the tracker looks different on a phone, that is expected because smaller screens switch to the mobile cards view.</li>
         <li>If a reference tab does not close, that website may block script-based closing after it opens.</li>
-        <li>If browser data is cleared, the tracker returns to its original seeded data.</li>
+        <li>If saving fails on a device, use <code>Download Backup</code> right away so you still have a copy of your progress.</li>
+        <li>If browser data is cleared, the tracker returns to its original seeded data unless you restore from a backup.</li>
       </ul>
     </section>
   </div>
