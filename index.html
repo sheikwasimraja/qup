@@ -351,6 +351,153 @@
       font-size: 0.82rem;
     }
 
+    .mobile-cards-view {
+      display: none;
+      padding: 0 14px 14px;
+    }
+
+    .mobile-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .mobile-filter-grid input,
+    .mobile-filter-grid select {
+      min-height: 40px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+    }
+
+    .mobile-cards-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mobile-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .mobile-card.focus-card {
+      outline: 2px solid rgba(15, 118, 110, 0.45);
+      background: #dff5f2;
+    }
+
+    .mobile-card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .mobile-card-title {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .mobile-card-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .mobile-card-tag {
+      white-space: nowrap;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.75rem;
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    .mobile-card-arabic {
+      direction: rtl;
+      text-align: right;
+      margin: 0 0 8px;
+      font-size: 1.3rem;
+      line-height: 1.7;
+      color: var(--accent-2);
+    }
+
+    .mobile-card-text,
+    .mobile-card-meta {
+      margin: 0 0 8px;
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    .mobile-card-meta {
+      color: var(--muted);
+    }
+
+    .mobile-card-grid,
+    .mobile-card-actions,
+    .mobile-card-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mobile-card-grid {
+      margin: 10px 0;
+    }
+
+    .mobile-card-field label {
+      display: block;
+      margin: 0 0 5px;
+      font-size: 0.74rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .mobile-card-detail-wrap {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #eadfc6;
+      display: none;
+    }
+
+    .mobile-card.is-expanded .mobile-card-detail-wrap {
+      display: block;
+    }
+
+    .mobile-card-detail {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+    }
+
+    .mobile-card-detail strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .mobile-cards-empty {
+      border: 1px dashed #cdbb95;
+      border-radius: 16px;
+      background: #fffdfa;
+      padding: 20px 14px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
     .pager {
       display: flex;
       gap: 10px;
@@ -435,6 +582,33 @@
       .mobile-hidden {
         display: none !important;
       }
+      .mobile-cards-view {
+        display: block;
+      }
+      .mobile-filter-grid,
+      .mobile-card-grid,
+      .mobile-card-actions,
+      .mobile-card-details {
+        gap: 6px;
+      }
+      .mobile-card {
+        padding: 10px;
+      }
+      .mobile-card-tag {
+        padding: 4px 8px;
+        font-size: 0.72rem;
+      }
+      .mobile-card-top {
+        gap: 8px;
+      }
+      .mobile-card-actions button,
+      .mobile-card-grid select,
+      .mobile-filter-grid input,
+      .mobile-filter-grid select {
+        min-height: 38px;
+        padding: 8px 10px;
+        font-size: 0.82rem;
+      }
       input, select, button {
         min-height: 46px;
         padding: 11px 12px;
@@ -471,6 +645,10 @@
       }
       .mobile-table-hint {
         display: block;
+      }
+      .table-scroll,
+      .filter-row {
+        display: none;
       }
       .link-cell {
         min-width: 0;
@@ -511,6 +689,12 @@
 
     @media (max-width: 420px) {
       .action-row {
+        grid-template-columns: 1fr;
+      }
+      .mobile-filter-grid,
+      .mobile-card-grid,
+      .mobile-card-actions,
+      .mobile-card-details {
         grid-template-columns: 1fr;
       }
       .action-row button {
@@ -574,6 +758,28 @@
     <section class="panel">
       <div id="tableStatus" class="status">Loading data...</div>
       <p class="mobile-table-hint">Swipe left and right to see all columns.</p>
+      <div id="mobileCardsView" class="mobile-cards-view" hidden>
+        <div class="mobile-filter-grid">
+          <input id="mobileSurahFilter" type="search" placeholder="Filter surah" />
+          <input id="mobileSuraNumberFilter" type="search" placeholder="Filter surah number" />
+          <input id="mobileVerseNumberFilter" type="search" placeholder="Filter verse number" />
+          <input id="mobileWordsFilter" type="search" placeholder="Filter words count" />
+          <input id="mobileArabicFilter" type="search" placeholder="Filter Arabic text" />
+          <input id="mobileTransliterationFilter" type="search" placeholder="Filter transliteration" />
+          <input id="mobileTranslationFilter" type="search" placeholder="Filter translation" />
+          <select id="mobileLearntFilter">
+            <option value="">Filter learnt</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+          <select id="mobileMemoriseFilter">
+            <option value="">Filter memorise</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div id="mobileCardsList" class="mobile-cards-list"></div>
+      </div>
       <div class="table-scroll" id="tableWrap" hidden>
         <table>
           <thead>
@@ -660,6 +866,8 @@
     const tableBody = document.getElementById('tableBody');
     const tableStatus = document.getElementById('tableStatus');
     const tableWrap = document.getElementById('tableWrap');
+    const mobileCardsView = document.getElementById('mobileCardsView');
+    const mobileCardsList = document.getElementById('mobileCardsList');
     const recordCount = document.getElementById('recordCount');
     const visibleCount = document.getElementById('visibleCount');
     const pageInfo = document.getElementById('pageInfo');
@@ -677,6 +885,17 @@
     const prevButtons = [document.getElementById('prevBtn'), document.getElementById('prevBottomBtn')];
     const nextButtons = [document.getElementById('nextBtn'), document.getElementById('nextBottomBtn')];
     const resetBtn = document.getElementById('resetBtn');
+    const mobileFilterInputs = new Map([
+      ['Surah Name', document.getElementById('mobileSurahFilter')],
+      ['SURA', document.getElementById('mobileSuraNumberFilter')],
+      ['VERSE', document.getElementById('mobileVerseNumberFilter')],
+      ['WORDS', document.getElementById('mobileWordsFilter')],
+      ['Quran Arabic', document.getElementById('mobileArabicFilter')],
+      ['Transliteration', document.getElementById('mobileTransliterationFilter')],
+      ['__translation__', document.getElementById('mobileTranslationFilter')],
+      ['Learnt', document.getElementById('mobileLearntFilter')],
+      ['Memorise', document.getElementById('mobileMemoriseFilter')]
+    ]);
 
     let currentPage = 1;
     let filteredRows = rows.slice();
@@ -1012,6 +1231,19 @@
       `;
     }
 
+    function isMobileCardsMode() {
+      return window.matchMedia('(max-width: 640px)').matches;
+    }
+
+    function clearAllFilters() {
+      columnFilterInputs.forEach((input) => {
+        input.value = '';
+      });
+      mobileFilterInputs.forEach((input) => {
+        input.value = '';
+      });
+    }
+
     function buildHeader() {
       tableHead.innerHTML = '';
       const linksHeader = document.createElement('th');
@@ -1178,13 +1410,126 @@
     }
 
     function getActiveColumnFilters() {
-      return orderedColumns
+      const desktopFilters = orderedColumns
         .map((column) => {
           const input = columnFilterInputs.get(column);
           const value = input ? input.value.trim().toLowerCase() : '';
           return value ? { column, value } : null;
         })
         .filter(Boolean);
+
+      const mobileFilters = [...mobileFilterInputs.entries()]
+        .map(([column, input]) => {
+          const value = input ? input.value.trim().toLowerCase() : '';
+          return value ? { column, value } : null;
+        })
+        .filter(Boolean);
+
+      return [...desktopFilters, ...mobileFilters.filter((mobileFilter) => {
+        return !desktopFilters.some((desktopFilter) => desktopFilter.column === mobileFilter.column && desktopFilter.value === mobileFilter.value);
+      })];
+    }
+
+    function matchesColumnFilter(row, column, value) {
+      if (column === 'Learnt' || column === 'Memorise') {
+        return value === 'yes'
+          ? String(row[column] || '').trim().toLowerCase() === 'yes'
+          : String(row[column] || '').trim().toLowerCase() !== 'yes';
+      }
+
+      if (column === '__translation__') {
+        const translationText = [
+          formatCellValue('Translation', row.Translation),
+          formatCellValue('Saheeh Translation', row['Saheeh Translation'])
+        ].join(' ').toLowerCase();
+        return translationText.includes(value);
+      }
+
+      if (/date/i.test(column)) {
+        return formatDateValueForFilter(row[column]) === value;
+      }
+
+      if (isNumericFilterColumn(column)) {
+        return formatCellValue(column, row[column]).toLowerCase() === value;
+      }
+
+      return formatCellValue(column, row[column]).toLowerCase().includes(value);
+    }
+
+    function renderMobileCards(pageRows) {
+      if (!isMobileCardsMode()) {
+        mobileCardsView.hidden = true;
+        return;
+      }
+
+      mobileCardsView.hidden = false;
+      mobileCardsList.innerHTML = '';
+
+      if (!pageRows.length) {
+        const empty = document.createElement('div');
+        empty.className = 'mobile-cards-empty';
+        empty.textContent = 'No matching records found.';
+        mobileCardsList.appendChild(empty);
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      pageRows.forEach((row) => {
+        const rowKey = getRowKey(row);
+        const article = document.createElement('article');
+        article.className = 'mobile-card';
+        article.dataset.rowKey = rowKey;
+
+        if (rowKey === focusedRowKey) {
+          article.classList.add('focus-card');
+        }
+
+        const verseLabel = formatCellValue('VerseNum', row.VerseNum || `${row.SURA || ''}:${row.VERSE || ''}`);
+        const surahLabel = formatCellValue('Surah Name', row['Surah Name']);
+        const juzLabel = formatCellValue('Juz', row.Juz);
+
+        article.innerHTML = `
+          <div class="mobile-card-top">
+            <div>
+              <h2 class="mobile-card-title">${surahLabel || 'Verse Preview'}</h2>
+              <p class="mobile-card-subtitle">${verseLabel || 'Unknown verse'}${juzLabel ? ` • Juz ${juzLabel}` : ''}</p>
+            </div>
+            <span class="mobile-card-tag">${verseLabel || 'Preview'}</span>
+          </div>
+          <p class="mobile-card-arabic">${formatCellValue('Quran Arabic', row['Quran Arabic']) || 'Arabic text not available.'}</p>
+          <p class="mobile-card-text">${formatCellValue('Transliteration', row.Transliteration) || 'No transliteration available.'}</p>
+          <p class="mobile-card-text">${formatCellValue('Translation', row.Translation) || formatCellValue('Saheeh Translation', row['Saheeh Translation']) || 'No translation available.'}</p>
+          <p class="mobile-card-meta">${formatCellValue('Date Learnt', row['Date Learnt']) ? `Learnt: ${formatCellValue('Date Learnt', row['Date Learnt'])}` : 'Learnt date: blank'}${formatCellValue('Date Memorised', row['Date Memorised']) ? ` • Memorised: ${formatCellValue('Date Memorised', row['Date Memorised'])}` : ''}</p>
+          <div class="mobile-card-grid">
+            <div class="mobile-card-field">
+              <label for="mobile-learnt-${rowKey}">Learnt</label>
+              ${renderLearntEditor(row).replace('class="learnt-select"', 'class="learnt-select mobile-card-select" id="mobile-learnt-' + rowKey + '"')}
+            </div>
+            <div class="mobile-card-field">
+              <label for="mobile-memorise-${rowKey}">Memorise</label>
+              ${renderMemoriseEditor(row).replace('class="memorise-select"', 'class="memorise-select mobile-card-select" id="mobile-memorise-' + rowKey + '"')}
+            </div>
+          </div>
+          <div class="mobile-card-actions">
+            ${buildVerseLinks(row)}
+            <button class="secondary mobile-card-toggle" type="button">Show More</button>
+          </div>
+          <div class="mobile-card-detail-wrap">
+            <div class="mobile-card-details">
+              <div class="mobile-card-detail"><strong>Surah No.</strong><span>${formatCellValue('SURA', row.SURA) || '—'}</span></div>
+              <div class="mobile-card-detail"><strong>Verse No.</strong><span>${formatCellValue('VERSE', row.VERSE) || '—'}</span></div>
+              <div class="mobile-card-detail"><strong>Words</strong><span>${formatCellValue('WORDS', row.WORDS) || '—'}</span></div>
+              <div class="mobile-card-detail"><strong>Letters</strong><span>${formatCellValue('LETTERS', row.LETTERS) || '—'}</span></div>
+            </div>
+          </div>
+        `;
+
+        fragment.appendChild(article);
+      });
+
+      mobileCardsList.appendChild(fragment);
+    }
     }
 
     function updateEditedCountPill() {
@@ -1206,17 +1551,7 @@
           return false;
         }
 
-        return activeColumnFilters.every(({ column, value }) =>
-          column === 'Learnt' || column === 'Memorise'
-            ? (value === 'yes'
-                ? String(row[column] || '').trim().toLowerCase() === 'yes'
-                : String(row[column] || '').trim().toLowerCase() !== 'yes')
-            : /date/i.test(column)
-              ? formatDateValueForFilter(row[column]) === value
-              : isNumericFilterColumn(column)
-                ? formatCellValue(column, row[column]).toLowerCase() === value
-                : formatCellValue(column, row[column]).toLowerCase().includes(value)
-        );
+        return activeColumnFilters.every(({ column, value }) => matchesColumnFilter(row, column, value));
       });
 
       currentPage = 1;
@@ -1230,12 +1565,14 @@
 
       const start = (currentPage - 1) * rowsPerPage;
       const pageRows = filteredRows.slice(start, start + rowsPerPage);
+      const usingMobileCards = isMobileCardsMode();
 
       tableBody.innerHTML = '';
+      renderMobileCards(pageRows);
 
       if (!pageRows.length) {
         tableWrap.hidden = true;
-        tableStatus.hidden = false;
+        tableStatus.hidden = usingMobileCards;
         tableStatus.textContent = 'No matching records found.';
       } else {
         const fragment = document.createDocumentFragment();
@@ -1273,7 +1610,7 @@
 
         tableBody.appendChild(fragment);
         tableStatus.hidden = true;
-        tableWrap.hidden = false;
+        tableWrap.hidden = usingMobileCards;
       }
 
       recordCount.textContent = `Records: ${rows.length.toLocaleString()}`;
@@ -1304,12 +1641,66 @@
     }));
 
     rowsPerPageSelect.addEventListener('change', renderTable);
+    mobileFilterInputs.forEach((input) => {
+      input.addEventListener('input', applyFilter);
+      input.addEventListener('change', applyFilter);
+    });
     tableBody.addEventListener('click', (event) => {
       const linkButton = event.target.closest('.reference-link');
       if (!linkButton) return;
       openAllReferences(linkButton.dataset.sura, linkButton.dataset.verse);
     });
     tableBody.addEventListener('change', (event) => {
+      const learntSelect = event.target.closest('.learnt-select');
+      if (learntSelect) {
+        const rowKey = learntSelect.dataset.rowKey;
+        const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
+        if (!row) return;
+
+        row.Learnt = learntSelect.value || null;
+        if (learntSelect.value === 'Yes') {
+          row['Date Learnt'] = getTodayLearntTimestamp();
+        }
+        setPendingRowChange(rowKey, 'Learnt', row.Learnt);
+        if (learntSelect.value === 'Yes') {
+          setPendingRowChange(rowKey, 'Date Learnt', row['Date Learnt']);
+        }
+        applyFilter();
+        return;
+      }
+
+      const memoriseSelect = event.target.closest('.memorise-select');
+      if (!memoriseSelect) return;
+
+      const rowKey = memoriseSelect.dataset.rowKey;
+      const row = rows.find((item, index) => getRowKey(item, index) === rowKey);
+      if (!row) return;
+
+      row.Memorise = memoriseSelect.value || null;
+      if (memoriseSelect.value === 'Yes') {
+        row['Date Memorised'] = getTodayMemorisedTimestamp();
+      }
+      setPendingRowChange(rowKey, 'Memorise', row.Memorise);
+      if (memoriseSelect.value === 'Yes') {
+        setPendingRowChange(rowKey, 'Date Memorised', row['Date Memorised']);
+      }
+      applyFilter();
+    });
+    mobileCardsList.addEventListener('click', (event) => {
+      const linkButton = event.target.closest('.reference-link');
+      if (linkButton) {
+        openAllReferences(linkButton.dataset.sura, linkButton.dataset.verse);
+        return;
+      }
+
+      const toggleButton = event.target.closest('.mobile-card-toggle');
+      if (!toggleButton) return;
+      const card = toggleButton.closest('.mobile-card');
+      if (!card) return;
+      card.classList.toggle('is-expanded');
+      toggleButton.textContent = card.classList.contains('is-expanded') ? 'Show Less' : 'Show More';
+    });
+    mobileCardsList.addEventListener('change', (event) => {
       const learntSelect = event.target.closest('.learnt-select');
       if (learntSelect) {
         const rowKey = learntSelect.dataset.rowKey;
@@ -1356,14 +1747,14 @@
       focusedRowKey = getRowKey(randomRow);
       reviewContextRowKey = focusedRowKey;
       updateReviewContextButton();
-      columnFilterInputs.forEach((input) => {
-        input.value = '';
-      });
+      clearAllFilters();
       filteredRows = [randomRow];
       currentPage = 1;
       renderTable();
       saveStatus.textContent = `Showing random not learnt row: ${formatCellValue('VerseNum', randomRow.VerseNum || '') || 'selected row'}. Use Reset to return to all rows.`;
-      const focusedRow = tableBody.querySelector('.focus-row');
+      const focusedRow = isMobileCardsMode()
+        ? mobileCardsList.querySelector('.focus-card')
+        : tableBody.querySelector('.focus-row');
       if (focusedRow) {
         focusedRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
       }
@@ -1387,7 +1778,9 @@
       currentPage = 1;
       renderTable();
       saveStatus.textContent = `Showing context for ${formatCellValue('VerseNum', rows[targetIndex].VerseNum || '') || 'the selected verse'} with up to 2 verses before and 2 verses after.`;
-      const focusedRow = tableBody.querySelector('.focus-row');
+      const focusedRow = isMobileCardsMode()
+        ? mobileCardsList.querySelector('.focus-card')
+        : tableBody.querySelector('.focus-row');
       if (focusedRow) {
         focusedRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
       }
@@ -1403,14 +1796,14 @@
       focusedRowKey = null;
       reviewContextRowKey = null;
       updateReviewContextButton();
-      columnFilterInputs.forEach((input) => {
-        input.value = '';
-      });
+      clearAllFilters();
       filteredRows = todaysRows;
       currentPage = 1;
       renderTable();
       saveStatus.textContent = `Showing today's read: ${todaysRows.length.toLocaleString()} row(s). Use Reset to return to all rows.`;
-      const firstRow = tableBody.querySelector('tr');
+      const firstRow = isMobileCardsMode()
+        ? mobileCardsList.querySelector('.mobile-card')
+        : tableBody.querySelector('tr');
       if (firstRow) {
         firstRow.scrollIntoView({ block: 'start', behavior: 'smooth' });
       }
@@ -1468,14 +1861,13 @@
       showEditedRowsOnly = false;
       reviewContextRowKey = null;
       updateReviewContextButton();
-      columnFilterInputs.forEach((input) => {
-        input.value = '';
-      });
+      clearAllFilters();
       filteredRows = rows.slice();
       focusedRowKey = null;
       currentPage = 1;
       renderTable();
     });
+    window.matchMedia('(max-width: 640px)').addEventListener('change', renderTable);
 
     loadPendingChanges();
     updateReviewContextButton();
