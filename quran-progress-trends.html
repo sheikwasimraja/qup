@@ -33,7 +33,7 @@
     }
 
     .page {
-      max-width: 1200px;
+      max-width: 1600px;
       margin: 0 auto;
     }
 
@@ -46,15 +46,16 @@
     }
 
     .hero {
-      padding: 18px;
+      padding: 14px 16px;
       margin-bottom: 12px;
       text-align: center;
+      background: linear-gradient(135deg, rgba(15,118,110,0.12), rgba(250,247,240,0.92));
     }
 
     h1 {
-      margin: 0 0 8px;
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-      line-height: 1.05;
+      margin: 0 0 4px;
+      font-size: clamp(1.4rem, 2.2vw, 2rem);
+      line-height: 1.1;
     }
 
     .subtitle {
@@ -66,16 +67,16 @@
     }
 
     .bismillah-arabic {
-      margin: 0 0 6px;
+      margin: 0 0 4px;
       font-size: clamp(1.2rem, 2vw, 1.7rem);
       line-height: 1.35;
       color: #134e4a;
     }
 
     .bismillah-english {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-style: italic;
     }
 
@@ -255,7 +256,11 @@
 
     @media (max-width: 640px) {
       body { padding: 12px; }
-      .hero, .panel { padding: 12px; }
+      .hero {
+        padding: 12px;
+        border-radius: 18px;
+      }
+      .panel { padding: 12px; }
       .stats { grid-template-columns: 1fr; }
     }
   </style>
