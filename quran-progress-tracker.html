@@ -339,6 +339,10 @@
       font-size: 0.95rem;
     }
 
+    .mobile-hidden {
+      display: inline-flex;
+    }
+
     .mobile-table-hint {
       display: none;
       margin: 0;
@@ -418,8 +422,18 @@
         padding: 9px 10px;
       }
       .action-row {
-        grid-template-columns: 1fr;
-        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .action-row button {
+        min-height: 40px;
+        padding: 8px 10px;
+        font-size: 0.84rem;
+        line-height: 1.2;
+        border-radius: 10px;
+      }
+      .mobile-hidden {
+        display: none !important;
       }
       input, select, button {
         min-height: 46px;
@@ -450,6 +464,10 @@
       .pill {
         width: 100%;
         justify-content: center;
+      }
+      .status-text {
+        grid-column: 1 / -1;
+        font-size: 0.84rem;
       }
       .mobile-table-hint {
         display: block;
@@ -490,6 +508,17 @@
         padding: 10px;
       }
     }
+
+    @media (max-width: 420px) {
+      .action-row {
+        grid-template-columns: 1fr;
+      }
+      .action-row button {
+        min-height: 38px;
+        padding: 8px 10px;
+        font-size: 0.82rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -512,7 +541,7 @@
       <button id="randomNotLearntBtn" class="secondary" type="button">Random Review Verse</button>
       <button id="reviewContextBtn" class="secondary" type="button" hidden>Show Context</button>
       <button id="todaysReadBtn" class="secondary" type="button">Today's Progress</button>
-      <button id="closeReferencesBtn" class="secondary" type="button">Close Reference Tabs</button>
+      <button id="closeReferencesBtn" class="secondary mobile-hidden" type="button">Close Reference Tabs</button>
       <button id="saveJsonBtn" type="button">Save Progress</button>
       <button id="downloadBackupBtn" class="secondary" type="button">Download Backup</button>
       <button id="restoreBackupBtn" class="secondary" type="button">Restore Backup</button>
