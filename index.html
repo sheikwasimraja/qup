@@ -942,6 +942,7 @@
     let filteredRows = rows.slice();
     let focusedRowKey = null;
     let reviewContextRowKey = null;
+    let pinnedUpdatedRowKey = null;
     let showEditedRowsOnly = false;
     const columnFilterInputs = new Map();
     const rowIdField = rows.some((row) => row && row['S.no'] !== undefined) ? 'S.no' : null;
@@ -1034,7 +1035,7 @@
 
     function formatDateValueForFilter(value) {
       if (!isEpochDate(value)) return '';
-      return new Date(value).toISOString().slice(0, 10);
+      return getLocalDateString(new Date(value));
     }
 
     function getDisplayLabel(column) {
@@ -1069,8 +1070,15 @@
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0).getTime();
     }
 
+    function getLocalDateString(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function getTodayDateString() {
-      return new Date().toISOString().slice(0, 10);
+      return getLocalDateString(new Date());
     }
 
     function toSafeId(value) {
@@ -1113,6 +1121,10 @@
       existing[field] = value;
       pendingRowChanges.set(rowKey, existing);
       savePendingChanges();
+    }
+
+    function clearPinnedUpdatedRow() {
+      pinnedUpdatedRowKey = null;
     }
 
     function savePendingChanges() {
@@ -1298,7 +1310,14 @@
       }
 
       setPendingRowChange(rowKey, field, row[field]);
+      const activeColumnFilters = getActiveColumnFilters();
+      const rowStillMatchesFilters = activeColumnFilters.every(({ column, value }) => matchesColumnFilter(row, column, value));
+      pinnedUpdatedRowKey = activeColumnFilters.length && !rowStillMatchesFilters ? rowKey : null;
+      focusedRowKey = rowKey;
       applyFilter();
+      if (pinnedUpdatedRowKey === rowKey) {
+        saveStatus.textContent = 'Updated verse kept visible. It no longer matches the current filter, so it is pinned temporarily at the top.';
+      }
       return true;
     }
 
@@ -1307,6 +1326,7 @@
     }
 
     function clearAllFilters() {
+      clearPinnedUpdatedRow();
       columnFilterInputs.forEach((input) => {
         input.value = '';
       });
@@ -1624,6 +1644,13 @@
         return activeColumnFilters.every(({ column, value }) => matchesColumnFilter(row, column, value));
       });
 
+      if (pinnedUpdatedRowKey) {
+        const pinnedRow = rows.find((row, index) => getRowKey(row, index) === pinnedUpdatedRowKey);
+        if (pinnedRow && !filteredRows.some((row, index) => getRowKey(row, index) === pinnedUpdatedRowKey)) {
+          filteredRows = [pinnedRow, ...filteredRows];
+        }
+      }
+
       currentPage = 1;
       renderTable();
     }
@@ -1712,8 +1739,14 @@
 
     rowsPerPageSelect.addEventListener('change', renderTable);
     mobileFilterInputs.forEach((input) => {
-      input.addEventListener('input', applyFilter);
-      input.addEventListener('change', applyFilter);
+      input.addEventListener('input', () => {
+        clearPinnedUpdatedRow();
+        applyFilter();
+      });
+      input.addEventListener('change', () => {
+        clearPinnedUpdatedRow();
+        applyFilter();
+      });
     });
     tableBody.addEventListener('click', (event) => {
       const linkButton = event.target.closest('.reference-link');
@@ -1752,6 +1785,7 @@
       toggleButton.textContent = card.classList.contains('is-expanded') ? 'Show Less' : 'Show More';
     });
     randomNotLearntBtn.addEventListener('click', () => {
+      clearPinnedUpdatedRow();
       const candidates = rows.filter((row) => !isLearntComplete(row));
       if (!candidates.length) {
         saveStatus.textContent = 'No not learnt rows are available.';
@@ -1775,6 +1809,7 @@
       }
     });
     reviewContextBtn.addEventListener('click', () => {
+      clearPinnedUpdatedRow();
       if (!reviewContextRowKey) {
         saveStatus.textContent = 'Choose a random review verse first.';
         return;
@@ -1801,6 +1836,7 @@
       }
     });
     todaysReadBtn.addEventListener('click', () => {
+      clearPinnedUpdatedRow();
       const today = getTodayDateString();
       const todaysRows = rows.filter((row) => formatDateValueForFilter(row['Date Learnt']) === today);
       if (!todaysRows.length) {
@@ -1824,6 +1860,7 @@
       }
     });
     editedCount.addEventListener('click', () => {
+      clearPinnedUpdatedRow();
       if (!getUpdatedRowCount()) {
         saveStatus.textContent = 'No updated rows are available yet.';
         return;
@@ -1858,6 +1895,7 @@
       restoreBackupFile(file);
     });
     clearChangesBtn.addEventListener('click', () => {
+      clearPinnedUpdatedRow();
       pendingRowChanges.clear();
       localStorage.removeItem(pendingChangesStorageKey);
       showEditedRowsOnly = false;
@@ -1872,6 +1910,7 @@
       applyFilter();
     });
     resetBtn.addEventListener('click', () => {
+      clearPinnedUpdatedRow();
       rowsPerPageSelect.value = '50';
       showEditedRowsOnly = false;
       reviewContextRowKey = null;
