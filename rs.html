@@ -403,13 +403,66 @@
             try {
                 const page = await pdfDoc.getPage(pageNum);
                 const textContent = await page.getTextContent();
-                const text = textContent.items.map((item) => item.str).join(" ");
+                const text = textContent.items
+                    .reduce((lines, item) => {
+                        if (!item.str) {
+                            return lines;
+                        }
+
+                        const y = Math.round(item.transform[5]);
+                        const lastLine = lines[lines.length - 1];
+
+                        if (!lastLine || Math.abs(lastLine.y - y) > 2) {
+                            lines.push({ y, parts: [item.str] });
+                            return lines;
+                        }
+
+                        lastLine.parts.push(item.str);
+                        return lines;
+                    }, [])
+                    .map((line) => line.parts.join(" ").replace(/\s+/g, " ").trim())
+                    .filter(Boolean)
+                    .join("\n");
+
                 allText[pageNum] = text;
                 return text;
             } catch (error) {
                 console.error(`Error extracting text from page ${pageNum}:`, error);
                 return "";
             }
+        }
+
+        function escapeRegExp(text) {
+            return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        function findHadithStart(text, hadithNum) {
+            const escapedNum = escapeRegExp(String(hadithNum));
+            const lineStartPattern = new RegExp(`(^|\\n)\\s*${escapedNum}\\.\\s+`, "m");
+            const lineStartMatch = lineStartPattern.exec(text);
+            if (lineStartMatch) {
+                return lineStartMatch.index + lineStartMatch[0].indexOf(`${hadithNum}.`);
+            }
+
+            const inlinePattern = new RegExp(`(^|[^\\d])${escapedNum}\\.\\s+`, "m");
+            const inlineMatch = inlinePattern.exec(text);
+            if (inlineMatch) {
+                return inlineMatch.index + inlineMatch[0].lastIndexOf(`${hadithNum}.`);
+            }
+
+            return -1;
+        }
+
+        function findNextHadithStart(text, fromIndex) {
+            const remaining = text.slice(fromIndex);
+            const nextPattern = /(?:^|\n)\s*\d{1,4}\.\s+/m;
+            const nextMatch = nextPattern.exec(remaining);
+
+            if (!nextMatch) {
+                return -1;
+            }
+
+            return fromIndex + nextMatch.index + nextMatch[0].search(/\d/);
         }
 
         function extractHadithAndCommentary(text, startIdx, endIdx) {
@@ -453,38 +506,27 @@
             searchBtn.disabled = true;
 
             try {
+                let carryoverText = "";
+
                 for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum += 1) {
                     const text = await getPageText(pageNum);
-                    const pattern = new RegExp(
-                        `${hadithNum}\\.\\s{1,3}` +
-                        `(?:Narrated|Reported|narrated|reported|` +
-                        `[A-Z][a-z\`'-]*\\s+(?:bin|Al-|ibn|Aba|Abu)|` +
-                        `Abu|Umar|Ali|Anas|Jabir|Abdullah|Malik|Ibrahim|Sa'd|Abil-Baraa)`,
-                        ""
-                    );
-
-                    const matchIdx = text.search(pattern);
+                    const searchableText = carryoverText ? `${carryoverText}\n${text}` : text;
+                    const matchIdx = findHadithStart(searchableText, hadithNum);
                     if (matchIdx === -1) {
-                        continue;
-                    }
-
-                    const numberMatch = text.substring(matchIdx).match(/(\d+)\.\s+/);
-                    if (!numberMatch) {
+                        carryoverText = text.slice(-1200);
                         continue;
                     }
 
                     let startIdx = matchIdx;
-                    let endIdx = text.length;
-
-                    const remaining = text.substring(matchIdx + 5);
-                    const nextPattern = /\d+\.\s{1,3}(?:Narrated|Reported|[A-Z][a-z`'-]*\s+(?:bin|Al-|ibn))/;
-                    const nextMatch = remaining.search(nextPattern);
+                    let endIdx = searchableText.length;
+                    const nextSearchStart = Math.min(searchableText.length, startIdx + String(hadithNum).length + 1);
+                    const nextMatch = findNextHadithStart(searchableText, nextSearchStart);
 
                     if (nextMatch !== -1) {
-                        endIdx = matchIdx + 5 + nextMatch;
+                        endIdx = nextMatch;
                     }
 
-                    const extracted = extractHadithAndCommentary(text, startIdx, endIdx);
+                    const extracted = extractHadithAndCommentary(searchableText, startIdx, endIdx);
                     const normalizedHadith = escapeHtml(extracted.hadith.replace(/\s+/g, " ").trim());
                     const normalizedCommentary = escapeHtml(extracted.commentary.replace(/\s+/g, " ").trim());
                     const hadithQuery = encodeURIComponent(`Hadith ${hadithNum}: ${extracted.hadith.replace(/\s+/g, " ").trim()}`);
