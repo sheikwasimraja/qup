@@ -28,80 +28,127 @@
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background:
-                radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 24%),
-                linear-gradient(180deg, #faf7f0 0%, var(--bg) 100%);
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 26%),
+                radial-gradient(circle at top right, rgba(19, 78, 74, 0.08), transparent 22%),
+                linear-gradient(180deg, #fcfaf5 0%, var(--bg) 100%);
             color: var(--text);
-            padding: 16px;
+            padding: 18px 14px 36px;
         }
 
         .wrap {
-            max-width: 1200px;
+            max-width: 860px;
             margin: 0 auto;
         }
 
         .hero {
-            background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(250, 247, 240, 0.92));
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top right, rgba(15, 118, 110, 0.18), transparent 32%),
+                linear-gradient(145deg, rgba(15, 118, 110, 0.14), rgba(250, 247, 240, 0.96));
             border: 1px solid var(--border);
-            border-radius: 22px;
-            padding: 24px;
+            border-radius: 28px;
+            padding: 28px 22px;
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            text-align: center;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            right: -40px;
+            bottom: -55px;
+            border-radius: 50%;
+            background: rgba(15, 118, 110, 0.08);
         }
 
         h1 {
             margin: 0 0 8px;
-            font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-            line-height: 1.1;
+            font-size: clamp(1.9rem, 4vw, 2.6rem);
+            line-height: 1;
             color: var(--accent-2);
+            letter-spacing: -0.03em;
         }
 
         .bismillah-arabic {
-            margin: 0 0 8px;
-            font-size: clamp(1.2rem, 2vw, 1.7rem);
+            margin: 0 0 10px;
+            font-size: clamp(1rem, 2vw, 1.2rem);
             line-height: 1.35;
             color: var(--accent-2);
+            opacity: 0.9;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 12px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(15, 118, 110, 0.18);
+            color: var(--accent-2);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         .subtext {
             margin: 0 0 16px;
             color: var(--muted);
             font-size: 1rem;
+            max-width: 36rem;
+            line-height: 1.6;
         }
 
         .source-link {
-            display: inline-block;
-            margin: 12px 0 0;
-            padding: 10px 16px;
-            background: rgba(15, 118, 110, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px 0 0;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.72);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 14px;
             color: var(--accent-2);
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 600;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.2s;
         }
 
         .source-link:hover {
-            background: rgba(15, 118, 110, 0.15);
+            background: rgba(255, 255, 255, 0.92);
+            transform: translateY(-1px);
         }
 
         .panel {
-            background: var(--panel);
+            background: rgba(255, 253, 248, 0.9);
             border: 1px solid var(--border);
-            border-radius: 18px;
-            box-shadow: var(--shadow);
+            border-radius: 24px;
+            box-shadow: 0 24px 52px rgba(50, 36, 12, 0.1);
             overflow: hidden;
-            padding: 24px;
+            padding: 22px;
+            backdrop-filter: blur(12px);
         }
 
         .search-section {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 14px;
+        }
+
+        .nav-actions {
             display: flex;
             gap: 12px;
-            align-items: flex-end;
             flex-wrap: wrap;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
 
         .search-group {
@@ -117,36 +164,40 @@
         }
 
         .search-group input {
-            padding: 12px 14px;
+            padding: 14px 16px;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 16px;
+            font-size: 1.02rem;
             min-width: 180px;
             background: #fff;
             color: var(--text);
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-shadow: inset 0 1px 2px rgba(31, 41, 55, 0.04);
         }
 
         .search-group input:focus {
             outline: none;
             border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
         }
 
         .search-btn {
-            padding: 12px 28px;
-            background: var(--accent);
+            padding: 14px 22px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
             color: #fff;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
-            height: 46px;
+            transition: transform 0.18s, box-shadow 0.2s, opacity 0.2s;
+            min-height: 52px;
+            box-shadow: 0 12px 22px rgba(15, 118, 110, 0.22);
         }
 
         .search-btn:hover {
-            background: var(--accent-2);
+            transform: translateY(-1px);
+            box-shadow: 0 16px 28px rgba(15, 118, 110, 0.26);
         }
 
         .search-btn:active {
@@ -158,11 +209,23 @@
             cursor: not-allowed;
         }
 
+        .nav-btn {
+            flex: 1 1 180px;
+            padding: 13px 18px;
+            min-width: 0;
+        }
+
         .status-text {
             min-height: 1.5rem;
             margin-bottom: 16px;
             color: var(--muted);
             font-size: 0.95rem;
+        }
+
+        .helper-text {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 0.88rem;
         }
 
         #content {
@@ -172,26 +235,31 @@
         .hadith-container {
             background: #fff;
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 22px;
+            padding: 22px;
             line-height: 1.8;
             color: var(--text);
+            box-shadow: 0 14px 28px rgba(50, 36, 12, 0.08);
+            animation: fadeUp 0.3s ease;
         }
 
         .hadith-number {
+            display: inline-flex;
+            align-items: center;
             font-weight: 700;
             color: var(--accent);
-            font-size: 1.1rem;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--border);
+            font-size: 0.95rem;
+            margin-bottom: 14px;
+            padding: 8px 12px;
+            background: rgba(15, 118, 110, 0.08);
+            border-radius: 999px;
         }
 
         .hadith-text {
-            text-align: justify;
+            text-align: left;
             margin-bottom: 16px;
-            font-size: 1rem;
-            line-height: 1.8;
+            font-size: 1.02rem;
+            line-height: 1.9;
         }
 
         .hadith-source {
@@ -262,60 +330,98 @@
         }
 
         .ai-links {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
-            flex-wrap: wrap;
             margin-top: 16px;
         }
 
         .ai-link {
-            display: inline-block;
-            padding: 10px 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 14px;
             background: rgba(15, 118, 110, 0.08);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 14px;
             color: var(--accent-2);
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
+            transition: background 0.2s, transform 0.15s, border-color 0.2s;
         }
 
         .ai-link:hover {
             background: rgba(15, 118, 110, 0.15);
             transform: translateY(-1px);
+            border-color: rgba(15, 118, 110, 0.35);
         }
 
         .ai-link:active {
             transform: translateY(0);
         }
 
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @media (max-width: 640px) {
             body {
-                padding: 12px;
+                padding: 12px 12px calc(20px + env(safe-area-inset-bottom));
             }
 
             .hero {
-                padding: 16px;
-                border-radius: 16px;
+                padding: 22px 16px;
+                border-radius: 24px;
+            }
+
+            .eyebrow {
+                font-size: 0.72rem;
+                margin-bottom: 10px;
             }
 
             .panel {
                 padding: 16px;
+                border-radius: 22px;
             }
 
             .search-section {
-                flex-direction: column;
+                grid-template-columns: 1fr;
                 gap: 10px;
             }
 
             .search-group input {
                 width: 100%;
                 min-width: 0;
+                font-size: 1rem;
             }
 
             .search-btn {
+                width: 100%;
+                min-height: 54px;
+            }
+
+            .nav-actions {
+                position: sticky;
+                bottom: 10px;
+                z-index: 5;
+                padding: 10px;
+                background: rgba(255, 253, 248, 0.9);
+                border: 1px solid rgba(214, 199, 168, 0.8);
+                border-radius: 18px;
+                box-shadow: 0 18px 30px rgba(50, 36, 12, 0.12);
+                backdrop-filter: blur(12px);
+            }
+
+            .nav-btn {
                 width: 100%;
             }
 
@@ -326,18 +432,18 @@
             .source-link {
                 width: 100%;
                 text-align: center;
-                display: block;
-                margin: 12px 0 0;
+                margin: 10px 0 0;
             }
 
             .ai-links {
-                flex-direction: column;
+                grid-template-columns: 1fr;
                 gap: 8px;
             }
 
             .ai-link {
                 width: 100%;
                 text-align: center;
+                min-height: 50px;
             }
         }
     </style>
@@ -345,9 +451,10 @@
 <body>
     <div class="wrap">
         <section class="hero">
+            <p class="eyebrow">Riyad us-Saliheen Reader</p>
             <p class="bismillah-arabic">Bismillah ir-Rahman ir-Rahim</p>
             <h1>Riyad us-Saliheen</h1>
-            <p class="subtext">Search Hadith by Number</p>
+            <p class="subtext">Browse by hadith number, move quickly with previous and next, and send the full text to your AI tool without losing content on mobile.</p>
             <a href="https://islamicfoundation.ie/site/assets/files/1068/riyad-us-saliheen.pdf" target="_blank" class="source-link">
                 View Full PDF Source
             </a>
@@ -357,9 +464,13 @@
             <div class="search-section">
                 <div class="search-group">
                     <label for="hadithNum">Enter Hadith Number:</label>
-                    <input type="number" id="hadithNum" placeholder="e.g., 1, 25, 100" min="1">
+                    <input type="number" id="hadithNum" placeholder="e.g., 1, 25, 100" min="1" value="1">
                 </div>
                 <button class="search-btn" id="searchBtn">Search Hadith</button>
+            </div>
+            <div class="nav-actions">
+                <button class="search-btn nav-btn" id="prevBtn" disabled>Previous Hadith</button>
+                <button class="search-btn nav-btn" id="nextBtn" disabled>Next Hadith</button>
             </div>
             <div id="status" class="status-text"></div>
 
@@ -381,8 +492,11 @@
 
         const hadithInput = document.getElementById("hadithNum");
         const searchBtn = document.getElementById("searchBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
         const contentDiv = document.getElementById("content");
         const statusDiv = document.getElementById("status");
+        let currentHadithNum = null;
 
         async function loadPDF() {
             try {
@@ -489,6 +603,44 @@
             return div.innerHTML;
         }
 
+        function updateNavigationButtons() {
+            const parsedValue = parseInt(hadithInput.value, 10);
+            const activeHadithNum = Number.isNaN(parsedValue) ? currentHadithNum : parsedValue;
+
+            prevBtn.disabled = !activeHadithNum || activeHadithNum <= 1;
+            nextBtn.disabled = !activeHadithNum;
+        }
+
+        async function copyToClipboard(text) {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = text;
+            tempTextArea.setAttribute("readonly", "");
+            tempTextArea.style.position = "absolute";
+            tempTextArea.style.left = "-9999px";
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            const copied = document.execCommand("copy");
+            document.body.removeChild(tempTextArea);
+            return copied;
+        }
+
+        async function openAiTool(url, prompt, toolName) {
+            try {
+                await copyToClipboard(prompt);
+                statusDiv.textContent = `${toolName} opened. Full prompt copied to clipboard for pasting.`;
+            } catch (error) {
+                console.error(`Clipboard copy failed for ${toolName}:`, error);
+                statusDiv.textContent = `${toolName} opened. Clipboard copy failed, so paste manually if needed.`;
+            }
+
+            window.open(url, "_blank", "noopener,noreferrer");
+        }
+
         async function findHadith(hadithNum) {
             if (!pdfDoc) {
                 contentDiv.innerHTML = '<div class="error">PDF not loaded. Please wait and try again.</div>';
@@ -498,6 +650,8 @@
             hadithNum = parseInt(hadithNum, 10);
             if (Number.isNaN(hadithNum) || hadithNum < 1) {
                 contentDiv.innerHTML = '<div class="error">Please enter a valid hadith number.</div>';
+                currentHadithNum = null;
+                updateNavigationButtons();
                 return;
             }
 
@@ -529,7 +683,13 @@
                     const extracted = extractHadithAndCommentary(searchableText, startIdx, endIdx);
                     const normalizedHadith = escapeHtml(extracted.hadith.replace(/\s+/g, " ").trim());
                     const normalizedCommentary = escapeHtml(extracted.commentary.replace(/\s+/g, " ").trim());
-                    const hadithQuery = encodeURIComponent(`Hadith ${hadithNum}: ${extracted.hadith.replace(/\s+/g, " ").trim()}`);
+                    const aiPrompt = [
+                        `Hadith ${hadithNum} from Riyad us-Saliheen.`,
+                        "",
+                        extracted.hadith.replace(/\s+/g, " ").trim(),
+                        extracted.commentary ? "" : null,
+                        extracted.commentary ? `Commentary: ${extracted.commentary.replace(/\s+/g, " ").trim()}` : null
+                    ].filter(Boolean).join("\n");
 
                     let html = `
                         <div class="hadith-container">
@@ -537,10 +697,11 @@
                             <div class="hadith-text">${normalizedHadith}</div>
                             <div class="hadith-source">Found on page ${pageNum} of ${pdfDoc.numPages}</div>
                             <div class="ai-links">
-                                <a href="https://chatgpt.com/?q=${hadithQuery}" target="_blank" rel="noopener noreferrer" class="ai-link">Ask ChatGPT</a>
-                                <a href="https://claude.ai/new?q=${hadithQuery}" target="_blank" rel="noopener noreferrer" class="ai-link">Ask Claude</a>
-                                <a href="https://www.perplexity.ai/search?q=${hadithQuery}" target="_blank" rel="noopener noreferrer" class="ai-link">Search Perplexity</a>
+                                <button type="button" class="ai-link" data-ai-url="https://chatgpt.com/" data-ai-tool="ChatGPT">Open ChatGPT</button>
+                                <button type="button" class="ai-link" data-ai-url="https://claude.ai/new" data-ai-tool="Claude">Open Claude</button>
+                                <button type="button" class="ai-link" data-ai-url="https://www.perplexity.ai/" data-ai-tool="Perplexity">Open Perplexity</button>
                             </div>
+                            <div class="helper-text">Each AI button copies the full hadith text to your clipboard before opening the tool.</div>
                     `;
 
                     if (extracted.commentary) {
@@ -555,13 +716,25 @@
                     html += "</div>";
 
                     contentDiv.innerHTML = html;
+                    currentHadithNum = hadithNum;
+                    hadithInput.value = String(hadithNum);
                     statusDiv.textContent = `Found on page ${pageNum}`;
-                    searchBtn.disabled = false;
+                    updateNavigationButtons();
+
+                    contentDiv.querySelectorAll("[data-ai-url]").forEach((button) => {
+                        button.addEventListener("click", () => {
+                            openAiTool(button.dataset.aiUrl, aiPrompt, button.dataset.aiTool);
+                        });
+                    });
+
                     return;
                 }
 
                 contentDiv.innerHTML = `<div class="error">Hadith ${hadithNum} not found in the PDF.</div>`;
+                currentHadithNum = hadithNum;
+                hadithInput.value = String(hadithNum);
                 statusDiv.textContent = `Hadith ${hadithNum} not found`;
+                updateNavigationButtons();
             } catch (error) {
                 contentDiv.innerHTML = `<div class="error">Error searching PDF: ${error.message}</div>`;
                 statusDiv.textContent = "Search failed.";
@@ -578,10 +751,28 @@
             }
         });
 
+        prevBtn.addEventListener("click", () => {
+            const baseNum = parseInt(hadithInput.value || currentHadithNum, 10);
+            if (!Number.isNaN(baseNum) && baseNum > 1) {
+                findHadith(baseNum - 1);
+            }
+        });
+
+        nextBtn.addEventListener("click", () => {
+            const baseNum = parseInt(hadithInput.value || currentHadithNum, 10);
+            if (!Number.isNaN(baseNum)) {
+                findHadith(baseNum + 1);
+            }
+        });
+
         hadithInput.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
                 searchBtn.click();
             }
+        });
+
+        hadithInput.addEventListener("input", () => {
+            updateNavigationButtons();
         });
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -592,7 +783,11 @@
             if (hadithParam) {
                 hadithInput.value = hadithParam;
                 setTimeout(() => findHadith(hadithParam), 500);
+            } else {
+                setTimeout(() => findHadith(1), 500);
             }
+
+            updateNavigationButtons();
         });
     </script>
 </body>
