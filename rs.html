@@ -228,6 +228,34 @@
             font-size: 0.88rem;
         }
 
+        .reference-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .reference-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(19, 78, 74, 0.06);
+            color: var(--accent-2);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.15s, border-color 0.2s;
+        }
+
+        .reference-link:hover {
+            background: rgba(19, 78, 74, 0.12);
+            border-color: rgba(15, 118, 110, 0.35);
+            transform: translateY(-1px);
+        }
+
         #content {
             min-height: 200px;
         }
@@ -440,10 +468,19 @@
                 gap: 8px;
             }
 
+            .reference-links {
+                flex-direction: column;
+            }
+
             .ai-link {
                 width: 100%;
                 text-align: center;
                 min-height: 50px;
+            }
+
+            .reference-link {
+                width: 100%;
+                min-height: 48px;
             }
         }
     </style>
@@ -488,7 +525,7 @@
 
         const PDF_URL = "https://islamicfoundation.ie/site/assets/files/1068/riyad-us-saliheen.pdf";
         let pdfDoc = null;
-        const allText = {};
+        const allPageData = {};
 
         const hadithInput = document.getElementById("hadithNum");
         const searchBtn = document.getElementById("searchBtn");
@@ -497,6 +534,8 @@
         const contentDiv = document.getElementById("content");
         const statusDiv = document.getElementById("status");
         let currentHadithNum = null;
+        let bookLinesCache = null;
+        let hadithIndexCache = null;
 
         async function loadPDF() {
             try {
@@ -509,40 +548,69 @@
             }
         }
 
-        async function getPageText(pageNum) {
-            if (allText[pageNum]) {
-                return allText[pageNum];
+        function isBoldFont(fontName) {
+            return /bold|black|heavy|demi|semibold/i.test(fontName || "");
+        }
+
+        async function getPageData(pageNum) {
+            if (allPageData[pageNum]) {
+                return allPageData[pageNum];
             }
 
             try {
                 const page = await pdfDoc.getPage(pageNum);
                 const textContent = await page.getTextContent();
-                const text = textContent.items
-                    .reduce((lines, item) => {
+                const lines = textContent.items
+                    .reduce((groupedLines, item) => {
                         if (!item.str) {
-                            return lines;
+                            return groupedLines;
                         }
 
                         const y = Math.round(item.transform[5]);
-                        const lastLine = lines[lines.length - 1];
+                        const x = Math.round(item.transform[4]);
+                        const lastLine = groupedLines[groupedLines.length - 1];
+                        const part = {
+                            text: item.str,
+                            x,
+                            isBold: isBoldFont(item.fontName)
+                        };
 
                         if (!lastLine || Math.abs(lastLine.y - y) > 2) {
-                            lines.push({ y, parts: [item.str] });
-                            return lines;
+                            groupedLines.push({ y, parts: [part] });
+                            return groupedLines;
                         }
 
-                        lastLine.parts.push(item.str);
-                        return lines;
+                        lastLine.parts.push(part);
+                        return groupedLines;
                     }, [])
-                    .map((line) => line.parts.join(" ").replace(/\s+/g, " ").trim())
-                    .filter(Boolean)
-                    .join("\n");
+                    .map((line) => {
+                        const sortedParts = line.parts.sort((a, b) => a.x - b.x);
+                        const text = sortedParts.map((part) => part.text).join(" ").replace(/\s+/g, " ").trim();
+                        const firstMeaningfulPart = sortedParts.find((part) => part.text.trim());
 
-                allText[pageNum] = text;
-                return text;
+                        return {
+                            text,
+                            firstPartBold: Boolean(firstMeaningfulPart?.isBold),
+                            firstPartX: firstMeaningfulPart?.x ?? 0
+                        };
+                    })
+                    .filter(Boolean)
+                    .filter((line) => line.text);
+
+                const pageMinX = lines.reduce((minX, line) => Math.min(minX, line.firstPartX ?? Infinity), Infinity);
+                const pageData = {
+                    lines: lines.map((line) => ({
+                        ...line,
+                        pageMinX
+                    })),
+                    text: lines.map((line) => line.text).join("\n")
+                };
+
+                allPageData[pageNum] = pageData;
+                return pageData;
             } catch (error) {
                 console.error(`Error extracting text from page ${pageNum}:`, error);
-                return "";
+                return { lines: [], text: "" };
             }
         }
 
@@ -550,33 +618,260 @@
             return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         }
 
-        function findHadithStart(text, hadithNum) {
-            const escapedNum = escapeRegExp(String(hadithNum));
-            const lineStartPattern = new RegExp(`(^|\\n)\\s*${escapedNum}\\.\\s+`, "m");
-            const lineStartMatch = lineStartPattern.exec(text);
-            if (lineStartMatch) {
-                return lineStartMatch.index + lineStartMatch[0].indexOf(`${hadithNum}.`);
+        function isChapterHeading(text) {
+            return /^\s*CHAPTER\s+\d+\s*:/im.test(text);
+        }
+
+        function normalizeLine(text) {
+            return text.replace(/\s+/g, " ").trim();
+        }
+
+        function isLikelyNarratorLine(body) {
+            // PRIMARY PATTERN: "Narrated" + Narrator + "(May Allah...)" + "reported/narrated"
+            // This is the MOST RELIABLE and matches actual hadith starts
+            if (/^Narrated\s+.+?\s*\(May Allah be pleased/i.test(body) && /\b(reported|narrated)\b/i.test(body)) {
+                return true;
             }
 
-            const inlinePattern = new RegExp(`(^|[^\\d])${escapedNum}\\.\\s+`, "m");
-            const inlineMatch = inlinePattern.exec(text);
-            if (inlineMatch) {
-                return inlineMatch.index + inlineMatch[0].lastIndexOf(`${hadithNum}.`);
+            // Pattern 2: Just starts with "Narrated" followed by any text
+            if (/^Narrated\b/i.test(body)) {
+                return true;
+            }
+
+            // Pattern 3: Narrator pattern with full structure: "Name bin Name (May Allah...) reported:"
+            // Must have actual narrator markers (bin/ibn/Al-/Abu) AND action verb
+            if (/^[A-Z][a-z\`\'-]*\s+(?:bin|ibn|Al-|Aba|Abu)[\w\s\`\'-]*\s*\(May Allah be pleased.*?\)\s*\b(reported|narrated)\b/i.test(body)) {
+                return true;
+            }
+
+            // Pattern 4: Has complete structure: "(May Allah...)" + "reported/narrated"
+            // This ensures we only match when both markers are present
+            if (/\(May Allah be pleased .*?\)/i.test(body) && /\b(reported|narrated)\b/i.test(body)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function isNearLeftMargin(line) {
+            const pageMinX = Number.isFinite(line.pageMinX) ? line.pageMinX : line.firstPartX;
+            return typeof line.firstPartX === "number" && typeof pageMinX === "number" && line.firstPartX <= pageMinX + 12;
+        }
+
+        function getHadithStartMatch(lines, index, expectedNum = null) {
+            const line = lines[index];
+            const normalized = normalizeLine(line?.text || "");
+            const match = normalized.match(/^(\d{1,4})(?:\s*\.)?\s*(.*)$/);
+            if (!match) {
+                return null;
+            }
+
+            const lineNumber = parseInt(match[1], 10);
+            if (expectedNum !== null && lineNumber !== expectedNum) {
+                return null;
+            }
+
+            const body = match[2];
+            
+            // STRICT FILTER 1: Skip if starts with "Commentary"
+            if (/^Commentary\s*:/i.test(body)) {
+                return null;
+            }
+
+            // STRICT FILTER 2: Skip obvious commentary points
+            // Commentary often starts with: "This Hadith...", "1. This leads...", "2. It is permissible...", etc.
+            // These are typically short analysis points that don't have narrator patterns
+            if (/^(This|It|The|There|Any|All|One|What|Such|Like|Both|However|Moreover|Furthermore|Therefore|Hence|Thus|Conclusion|Note)\s+/i.test(body)) {
+                // If no hadith markers (Narrated, reported, etc.) in this line AND next line, it's commentary
+                const nextLine = normalizeLine(lines[index + 1]?.text || "");
+                if (!/\b(Narrated|reported|narrated)\b/i.test(body) && !/\b(Narrated|reported|narrated)\b/i.test(nextLine)) {
+                    return null;
+                }
+            }
+
+            // STRICT FILTER 3: Names alone without proper hadith structure are rejected
+            // A real hadith must have: "Narrated X (May Allah...) reported:" structure
+            // or at least start with "Narrated"
+
+            if (!isNearLeftMargin(line)) {
+                return null;
+            }
+
+            // PRIMARY: Body has complete hadith structure
+            if (body && isLikelyNarratorLine(body)) {
+                return { lineNumber, consumedLines: 1 };
+            }
+
+            // FALLBACK: Number alone with hadith on next line(s)
+            if ((!body || body === ".") && line.firstPartBold) {
+                const nextLine = normalizeLine(lines[index + 1]?.text || "");
+                const lineAfterNext = normalizeLine(lines[index + 2]?.text || "");
+
+                if (isLikelyNarratorLine(nextLine)) {
+                    return { lineNumber, consumedLines: 2 };
+                }
+
+                if (
+                    /\(May Allah be pleased .*?\)/i.test(`${nextLine} ${lineAfterNext}`) &&
+                    /\b(reported|narrated)\b/i.test(`${nextLine} ${lineAfterNext}`)
+                ) {
+                    return { lineNumber, consumedLines: 3 };
+                }
+            }
+
+            return null;
+        }
+
+        function isHadithStartLine(lines, index, expectedNum = null) {
+            return Boolean(getHadithStartMatch(lines, index, expectedNum));
+        }
+
+        function findHadithStartLineIndex(lines, hadithNum) {
+            for (let index = 0; index < lines.length; index += 1) {
+                if (isHadithStartLine(lines, index, hadithNum)) {
+                    return index;
+                }
             }
 
             return -1;
         }
 
-        function findNextHadithStart(text, fromIndex) {
-            const remaining = text.slice(fromIndex);
-            const nextPattern = /(?:^|\n)\s*\d{1,4}\.\s+/m;
-            const nextMatch = nextPattern.exec(remaining);
+        function findBoundaryLineIndex(lines, startIndex) {
+            for (let index = startIndex; index < lines.length; index += 1) {
+                const line = lines[index];
+                const normalizedText = normalizeLine(line.text || "");
+                if (!normalizedText) {
+                    continue;
+                }
 
-            if (!nextMatch) {
-                return -1;
+                if (/^CHAPTER\s+\d+\s*:/i.test(normalizedText)) {
+                    return index;
+                }
+
+                if (isHadithStartLine(lines, index)) {
+                    return index;
+                }
             }
 
-            return fromIndex + nextMatch.index + nextMatch[0].search(/\d/);
+            return -1;
+        }
+
+        async function collectHadithText(startPageNum, startLineIndex, initialLines) {
+            let combinedLines = initialLines
+                .map((line) => ({ ...line, text: normalizeLine(line.text || "") }))
+                .filter((line) => line.text);
+            let endPageNum = startPageNum;
+
+            while (true) {
+                const nextBoundaryIndex = findBoundaryLineIndex(combinedLines, startLineIndex + 1);
+                if (nextBoundaryIndex !== -1) {
+                    return {
+                        text: combinedLines.slice(startLineIndex, nextBoundaryIndex).map((line) => line.text).join("\n").trim(),
+                        endPageNum
+                    };
+                }
+
+                if (endPageNum >= pdfDoc.numPages) {
+                    return {
+                        text: combinedLines.slice(startLineIndex).map((line) => line.text).join("\n").trim(),
+                        endPageNum
+                    };
+                }
+
+                endPageNum += 1;
+                const nextPageData = await getPageData(endPageNum);
+                if (!nextPageData.lines.length) {
+                    return {
+                        text: combinedLines.slice(startLineIndex).map((line) => line.text).join("\n").trim(),
+                        endPageNum
+                    };
+                }
+
+                combinedLines = combinedLines.concat(
+                    nextPageData.lines
+                        .map((line) => ({ ...line, text: normalizeLine(line.text || "") }))
+                        .filter((line) => line.text)
+                );
+            }
+        }
+
+        async function buildBookLines() {
+            if (bookLinesCache) {
+                return bookLinesCache;
+            }
+
+            const allLines = [];
+
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum += 1) {
+                if (pageNum === 1 || pageNum % 20 === 0) {
+                    statusDiv.textContent = `Indexing page ${pageNum} of ${pdfDoc.numPages}...`;
+                }
+
+                const pageData = await getPageData(pageNum);
+                const pageLines = pageData.lines
+                    .map((line) => ({
+                        ...line,
+                        pageNum,
+                        text: normalizeLine(line.text || "")
+                    }))
+                    .filter((line) => line.text);
+
+                allLines.push(...pageLines);
+            }
+
+            bookLinesCache = allLines;
+            return allLines;
+        }
+
+        async function buildHadithIndex() {
+            if (hadithIndexCache) {
+                return hadithIndexCache;
+            }
+
+            const allLines = await buildBookLines();
+            const entries = [];
+            let expectedNum = 1;
+            const chapterStartIndexes = [];
+
+            for (let index = 0; index < allLines.length; index += 1) {
+                if (isChapterHeading(allLines[index].text || "")) {
+                    chapterStartIndexes.push(index);
+                }
+            }
+
+            if (!chapterStartIndexes.length) {
+                hadithIndexCache = entries;
+                return entries;
+            }
+
+            for (let chapterIdx = 0; chapterIdx < chapterStartIndexes.length; chapterIdx += 1) {
+                const chapterStart = chapterStartIndexes[chapterIdx];
+                const chapterEnd = chapterIdx + 1 < chapterStartIndexes.length
+                    ? chapterStartIndexes[chapterIdx + 1]
+                    : allLines.length;
+
+                for (let index = chapterStart + 1; index < chapterEnd; index += 1) {
+                    if (index === chapterStart + 1 || index % 500 === 0) {
+                        statusDiv.textContent = `Building hadith index... found ${entries.length} so far`;
+                    }
+
+                    const match = getHadithStartMatch(allLines, index, expectedNum);
+                    if (!match) {
+                        continue;
+                    }
+
+                    entries.push({
+                        num: expectedNum,
+                        startIndex: index,
+                        pageNum: allLines[index].pageNum
+                    });
+                    expectedNum += 1;
+                    index += Math.max(0, match.consumedLines - 1);
+                }
+            }
+
+            hadithIndexCache = entries;
+            return entries;
         }
 
         function extractHadithAndCommentary(text, startIdx, endIdx) {
@@ -611,36 +906,6 @@
             nextBtn.disabled = !activeHadithNum;
         }
 
-        async function copyToClipboard(text) {
-            if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(text);
-                return true;
-            }
-
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = text;
-            tempTextArea.setAttribute("readonly", "");
-            tempTextArea.style.position = "absolute";
-            tempTextArea.style.left = "-9999px";
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            const copied = document.execCommand("copy");
-            document.body.removeChild(tempTextArea);
-            return copied;
-        }
-
-        async function openAiTool(url, prompt, toolName) {
-            try {
-                await copyToClipboard(prompt);
-                statusDiv.textContent = `${toolName} opened. Full prompt copied to clipboard for pasting.`;
-            } catch (error) {
-                console.error(`Clipboard copy failed for ${toolName}:`, error);
-                statusDiv.textContent = `${toolName} opened. Clipboard copy failed, so paste manually if needed.`;
-            }
-
-            window.open(url, "_blank", "noopener,noreferrer");
-        }
-
         async function findHadith(hadithNum) {
             if (!pdfDoc) {
                 contentDiv.innerHTML = '<div class="error">PDF not loaded. Please wait and try again.</div>';
@@ -660,80 +925,68 @@
             searchBtn.disabled = true;
 
             try {
-                let carryoverText = "";
+                const entries = await buildHadithIndex();
+                const allLines = await buildBookLines();
+                const currentEntry = entries.find((entry) => entry.num === hadithNum);
 
-                for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum += 1) {
-                    const text = await getPageText(pageNum);
-                    const searchableText = carryoverText ? `${carryoverText}\n${text}` : text;
-                    const matchIdx = findHadithStart(searchableText, hadithNum);
-                    if (matchIdx === -1) {
-                        carryoverText = text.slice(-1200);
-                        continue;
-                    }
-
-                    let startIdx = matchIdx;
-                    let endIdx = searchableText.length;
-                    const nextSearchStart = Math.min(searchableText.length, startIdx + String(hadithNum).length + 1);
-                    const nextMatch = findNextHadithStart(searchableText, nextSearchStart);
-
-                    if (nextMatch !== -1) {
-                        endIdx = nextMatch;
-                    }
-
-                    const extracted = extractHadithAndCommentary(searchableText, startIdx, endIdx);
-                    const normalizedHadith = escapeHtml(extracted.hadith.replace(/\s+/g, " ").trim());
-                    const normalizedCommentary = escapeHtml(extracted.commentary.replace(/\s+/g, " ").trim());
-                    const aiPrompt = [
-                        `Hadith ${hadithNum} from Riyad us-Saliheen.`,
-                        "",
-                        extracted.hadith.replace(/\s+/g, " ").trim(),
-                        extracted.commentary ? "" : null,
-                        extracted.commentary ? `Commentary: ${extracted.commentary.replace(/\s+/g, " ").trim()}` : null
-                    ].filter(Boolean).join("\n");
-
-                    let html = `
-                        <div class="hadith-container">
-                            <div class="hadith-number">Hadith ${hadithNum}</div>
-                            <div class="hadith-text">${normalizedHadith}</div>
-                            <div class="hadith-source">Found on page ${pageNum} of ${pdfDoc.numPages}</div>
-                            <div class="ai-links">
-                                <button type="button" class="ai-link" data-ai-url="https://chatgpt.com/" data-ai-tool="ChatGPT">Open ChatGPT</button>
-                                <button type="button" class="ai-link" data-ai-url="https://claude.ai/new" data-ai-tool="Claude">Open Claude</button>
-                                <button type="button" class="ai-link" data-ai-url="https://www.perplexity.ai/" data-ai-tool="Perplexity">Open Perplexity</button>
-                            </div>
-                            <div class="helper-text">Each AI button copies the full hadith text to your clipboard before opening the tool.</div>
-                    `;
-
-                    if (extracted.commentary) {
-                        html += `
-                            <div class="commentary-section">
-                                <div class="commentary-label">Commentary</div>
-                                <div class="commentary-text">${normalizedCommentary}</div>
-                            </div>
-                        `;
-                    }
-
-                    html += "</div>";
-
-                    contentDiv.innerHTML = html;
+                if (!currentEntry) {
+                    contentDiv.innerHTML = `<div class="error">Hadith ${hadithNum} not found in the PDF index.</div>`;
                     currentHadithNum = hadithNum;
                     hadithInput.value = String(hadithNum);
-                    statusDiv.textContent = `Found on page ${pageNum}`;
+                    statusDiv.textContent = `Hadith ${hadithNum} not found`;
                     updateNavigationButtons();
-
-                    contentDiv.querySelectorAll("[data-ai-url]").forEach((button) => {
-                        button.addEventListener("click", () => {
-                            openAiTool(button.dataset.aiUrl, aiPrompt, button.dataset.aiTool);
-                        });
-                    });
-
                     return;
                 }
 
-                contentDiv.innerHTML = `<div class="error">Hadith ${hadithNum} not found in the PDF.</div>`;
+                const nextEntry = entries.find((entry) => entry.num === hadithNum + 1);
+                const endIndex = nextEntry ? nextEntry.startIndex : allLines.length;
+                const selectedLines = allLines.slice(currentEntry.startIndex, endIndex);
+                const rawText = selectedLines.map((line) => line.text).join("\n").trim();
+                const extracted = extractHadithAndCommentary(rawText, 0, rawText.length);
+                const normalizedHadith = escapeHtml(extracted.hadith.replace(/\s+/g, " ").trim());
+                const normalizedCommentary = escapeHtml(extracted.commentary.replace(/\s+/g, " ").trim());
+                const aiPrompt = [
+                    `Hadith ${hadithNum} from Riyad us-Saliheen.`,
+                    extracted.hadith.replace(/\s+/g, " ").trim(),
+                    extracted.commentary ? `Commentary: ${extracted.commentary.replace(/\s+/g, " ").trim()}` : null
+                ].filter(Boolean).join(" ");
+                const hadithQuery = encodeURIComponent(aiPrompt);
+                const sunnahUrl = `https://sunnah.com/riyadussalihin:${hadithNum}`;
+                const endPageNum = selectedLines[selectedLines.length - 1]?.pageNum ?? currentEntry.pageNum;
+
+                let html = `
+                    <div class="hadith-container">
+                        <div class="hadith-number">Hadith ${hadithNum}</div>
+                        <div class="hadith-text">${normalizedHadith}</div>
+                        <div class="hadith-source">${endPageNum > currentEntry.pageNum ? `Found on pages ${currentEntry.pageNum}-${endPageNum}` : `Found on page ${currentEntry.pageNum}`} of ${pdfDoc.numPages}</div>
+                        <div class="reference-links">
+                            <a href="${sunnahUrl}" target="_blank" rel="noopener noreferrer" class="reference-link">Open on Sunnah.com</a>
+                        </div>
+                        <div class="ai-links">
+                            <a href="https://chatgpt.com/?q=${hadithQuery}" target="_blank" rel="noopener noreferrer" class="ai-link">Ask ChatGPT</a>
+                            <a href="https://claude.ai/new?q=${hadithQuery}" target="_blank" rel="noopener noreferrer" class="ai-link">Ask Claude</a>
+                            <a href="https://www.perplexity.ai/search?q=${hadithQuery}" target="_blank" rel="noopener noreferrer" class="ai-link">Search Perplexity</a>
+                        </div>
+                        <div class="helper-text">AI links open directly with the hadith text attached to the query.</div>
+                `;
+
+                if (extracted.commentary) {
+                    html += `
+                        <div class="commentary-section">
+                            <div class="commentary-label">Commentary</div>
+                            <div class="commentary-text">${normalizedCommentary}</div>
+                        </div>
+                    `;
+                }
+
+                html += "</div>";
+
+                contentDiv.innerHTML = html;
                 currentHadithNum = hadithNum;
                 hadithInput.value = String(hadithNum);
-                statusDiv.textContent = `Hadith ${hadithNum} not found`;
+                statusDiv.textContent = endPageNum > currentEntry.pageNum
+                    ? `Found on pages ${currentEntry.pageNum}-${endPageNum}`
+                    : `Found on page ${currentEntry.pageNum}`;
                 updateNavigationButtons();
             } catch (error) {
                 contentDiv.innerHTML = `<div class="error">Error searching PDF: ${error.message}</div>`;
